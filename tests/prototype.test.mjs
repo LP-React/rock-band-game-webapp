@@ -34,7 +34,7 @@ class Audio {
   }
   createBuffer(_, length) { const samples = new Float32Array(length); return { getChannelData: () => samples } }
   createBufferSource() {
-    const node = { connect() {}, disconnect() {}, start(time) { this.time = time }, stop() { this.stopped = true } }
+    const node = { connect() {}, disconnect() {}, start(time, offset) { this.time = time; this.offset = offset }, stop() { this.stopped = true } }
     this.sources.push(node)
     return node
   }
@@ -92,8 +92,65 @@ test('chords complete with separate color key presses; restart clears state', as
   assert.equal(game.pressed.size, 0)
   assert.equal(game.master.gain.value, .25)
   game.blur()
-  assert.equal(game.active, false)
+  assert.equal(game.active, true)
+  assert.equal(game.paused, true)
   assert.ok(game.audio.sources.every(source => source.stopped))
+  game.destroy()
+})
+
+test('Escape freezes progress and resumes synchronized stems at the saved offset', async () => {
+  const game = new Prototype(canvas(), () => {})
+  await game.start(.5)
+  game.audio.currentTime = game.started + 2
+  press(game, 'KeyA')
+  game.mechanics.energy = .75
+  game.mechanics.activate()
+  const score = game.score, health = game.mechanics.health
+  press(game, 'Escape')
+  assert.equal(game.paused, true)
+  assert.equal(game.position(), 2)
+  assert.ok(game.audio.sources.every(source => source.stopped))
+  game.audio.currentTime += 30
+  game.render()
+  press(game, 'KeyD')
+  press(game, 'Space')
+  assert.equal(game.position(), 2)
+  assert.equal(game.score, score)
+  assert.equal(game.mechanics.health, health)
+  assert.equal(game.mechanics.energy, .75)
+  await game.togglePause()
+  assert.equal(game.paused, false)
+  assert.equal(game.sources[0].offset, 2)
+  assert.equal(game.sources[1].offset, 2)
+  assert.equal(game.sources[0].time, game.sources[1].time)
+  assert.equal(game.position(), 2)
+  game.audio.currentTime = game.started + 2.5
+  game.render()
+  assert.equal(game.position(), 2.5)
+  assert.equal(game.mechanics.energy, .6875)
+  await game.start(.5)
+  assert.equal(game.offset, 0)
+  assert.equal(game.paused, false)
+  game.destroy()
+})
+
+test('paused releases do not fail sustains; reholding allows continuation', async () => {
+  const game = new Prototype(canvas(), () => {})
+  await game.start(.5)
+  game.audio.currentTime = game.started + 2
+  press(game, 'KeyA')
+  game.mechanics.hold(0, 2, 4)
+  await game.togglePause()
+  const health = game.mechanics.health
+  game.keyup({code:'KeyA'})
+  assert.equal(game.mechanics.health, health)
+  assert.equal(game.mechanics.sustains.length, 1)
+  press(game, 'KeyA')
+  await game.togglePause()
+  assert.equal(game.mechanics.health, health)
+  game.audio.currentTime = game.started + 3
+  game.score += game.mechanics.update(3, [], [], 1)
+  assert.equal(game.score, 60)
   game.destroy()
 })
 

@@ -14,7 +14,7 @@ export function drawHighway(state: RenderState) {
     const ambient = c.createRadialGradient(w * .5, h * .3, 10, w * .5, h * .5, w * .6)
     ambient.addColorStop(0, state.mechanics.boost ? '#07506b' : '#242033'); ambient.addColorStop(1, '#07090d')
     c.fillStyle = ambient; c.fillRect(0, 0, w, h)
-    const near = Math.min(w * .79, h * 1.2), top = h * .08, bottom = h * 1.04, hit = .85
+    const near = Math.min(w * .70, h * 1.12), top = h * .08, bottom = h * 1.04, hit = .96
     const point = (lane: number, depth: number) => {
       const scale = .25 / (1 - .75 * depth)
       return { x: w / 2 + (lane / 5 - .5) * near * scale, y: top + (bottom - top) * (scale - .25) / .75, width: near * scale / 5 }
@@ -98,19 +98,33 @@ export function drawHighway(state: RenderState) {
       const p = point(lane + .5, hit)
       c.fillStyle = '#b6b7c3'; c.font = '11px Segoe UI'; c.textAlign = 'center'; c.fillText(keyLabel(state.settings.keys[lane]), p.x, p.y + p.width * .45)
     })
-    c.textAlign = 'left'; c.fillStyle = '#a4a3b1'; c.font = '10px Segoe UI'
-    const hudX = w > 600 ? 28 : 12, hudY = h * (w > 600 ? .65 : .42)
+    // Fade the distant entrance, including rails and arriving notes, into the background.
+    const entrance = c.createLinearGradient(0, top, 0, top + h * .20)
+    entrance.addColorStop(0, '#07090d'); entrance.addColorStop(1, '#07090d00')
+    c.save(); path([point(0, 0), point(5, 0), point(5, 1), point(0, 1)]); c.clip()
+    c.fillStyle = entrance; c.fillRect(0, top - 1, w, h * .20 + 1); c.restore()
+    const compact = w < 700
+    const boardLeft = point(0, hit).x, boardRight = point(5, hit).x
+    const hudX = compact ? 12 : Math.max(18, boardLeft - 210), hudY = h * (compact ? .38 : .62)
+    c.textAlign = 'left'; c.fillStyle = '#a4a3b1'; c.font = '11px Segoe UI'
     c.fillText('PUNTUACIÓN', hudX, hudY)
-    c.fillStyle = '#f0eff5'; c.font = `bold ${w > 600 ? 32 : 20}px Segoe UI`; c.fillText(String(state.score).padStart(6, '0'), hudX, hudY + 34)
-    c.fillStyle = '#baff64'; c.font = '12px Segoe UI'; c.fillText(`×${state.multiplier}  /  ${state.streak} RACHA`, hudX, hudY + 58)
-    const barWidth = w > 600 ? 140 : 80
-    c.fillStyle = '#a4a3b1'; c.font = '10px Segoe UI'; c.fillText('VIDA', hudX, hudY + 86)
-    c.fillStyle = '#303440'; c.fillRect(hudX, hudY + 94, barWidth, 7)
-    c.fillStyle = state.mechanics.health < .25 ? '#ff4659' : '#72eb48'; c.fillRect(hudX, hudY + 94, barWidth * state.mechanics.health, 7)
-    c.fillStyle = '#64e7ff'; c.fillText(state.mechanics.boost ? 'BOOST ACTIVO' : 'BOOST · ESPACIO', hudX, hudY + 124)
-    c.fillStyle = '#303440'; c.fillRect(hudX, hudY + 132, barWidth, 8)
-    c.fillStyle = '#64e7ff'; c.fillRect(hudX, hudY + 132, barWidth * state.mechanics.energy, 8)
-    c.fillStyle = '#fff'; c.fillRect(hudX + barWidth / 2, hudY + 130, 1, 12)
+    c.fillStyle = '#f0eff5'; c.font = `bold ${compact ? 24 : 44}px Segoe UI`; c.fillText(String(state.score).padStart(6, '0'), hudX, hudY + 45)
+    c.fillStyle = '#baff64'; c.font = `bold ${compact ? 14 : 20}px Segoe UI`; c.fillText(`×${state.multiplier}  ·  ${state.streak} RACHA`, hudX, hudY + 76)
+    const barWidth = compact ? 90 : 168
+    c.fillStyle = '#64e7ff'; c.font = '11px Segoe UI'; c.fillText(state.mechanics.boost ? 'BOOST ACTIVO' : 'BOOST · ESPACIO', hudX, hudY + 112)
+    c.fillStyle = '#303440'; c.fillRect(hudX, hudY + 124, barWidth, 12)
+    c.fillStyle = '#64e7ff'; c.fillRect(hudX, hudY + 124, barWidth * state.mechanics.energy, 12)
+    c.fillStyle = '#fff'; c.fillRect(hudX + barWidth / 2, hudY + 122, 1, 16)
+    const lifeX = compact ? w - 30 : Math.min(w - 45, boardRight + 30), lifeY = h * .55, lifeHeight = Math.min(180, h * .30)
+    c.textAlign = 'center'; c.fillStyle = '#a4a3b1'; c.font = '11px Segoe UI'; c.fillText('VIDA', lifeX + 8, lifeY - 16)
+    for (let segment = 0; segment < 20; segment++) {
+      const segmentY = lifeY + lifeHeight - (segment + 1) * lifeHeight / 20
+      c.fillStyle = segment / 20 < state.mechanics.health ? segment < 5 ? '#ff4659' : segment < 10 ? '#ffe14d' : '#72eb48' : '#303440'
+      c.fillRect(lifeX, segmentY, 16, lifeHeight / 20 - 2)
+    }
+    if (state.active && !state.mechanics.boost && state.mechanics.energy >= .5) {
+      c.textAlign = 'center'; c.font = 'bold 13px Segoe UI'; c.fillStyle = '#a8f6ff'; c.fillText('⚡ BOOST LISTO · ESPACIO', w / 2, h * .25)
+    }
     if (state.mechanics.boost) { c.textAlign = 'center'; c.font = 'bold 24px Segoe UI'; c.fillStyle = '#a8f6ff'; c.fillText(`⚡ BOOST ×${state.multiplier}`, w / 2, h * .1) }
     c.fillStyle = '#baff64'; c.fillRect(0, h - 3, w * time / state.duration, 3)
 }
