@@ -50,15 +50,13 @@
 .home-screen .menu-ribbon:hover { transform:none; }
 .home-screen .menu-ribbon strong { font-size:32px; }
 .home-screen .config-ribbon strong { font-size:26px; }
-.home-main-actions { transition:opacity .25s; }
-.choosing-mode .home-main-actions { opacity:.65; }
-.home-screen .choosing-mode .menu-ribbon { padding:13px 28px 13px 65px; }
-.home-screen .choosing-mode .menu-ribbon strong { font-size:20px; }
-.play-modes { margin:18px 0 0 55px; animation:mode-enter .25s ease-out; }
+.home-main-actions { animation:mode-enter .25s ease-out; }
+.play-modes { margin:0 0 0 55px; animation:mode-enter .25s ease-out; }
 .mode-option { display:flex; justify-content:space-between; align-items:center; width:100%; padding:20px 24px; margin:8px 0; text-align:left; background:var(--secondary); color:#271d28; border:0; border-radius:12px 35px 35px 12px; }
 .mode-option strong { display:block; font-size:25px; }
 .mode-option small { display:block; margin-top:4px; font-size:13px; }
 .mode-option b { font-size:25px; }
+.home-screen .mode-option:hover:not(:disabled) { background:var(--secondary); filter:brightness(1.08); }
 .friends-mode { background:#342a36; color:#b9adb9; opacity:.75; }
 .home-screen .friends-mode:disabled { opacity:.85; }
 .home-screen .config-ribbon:hover:not(:disabled) { background:color-mix(in srgb,var(--panel) 80%,var(--accent)); }
@@ -86,8 +84,8 @@
 .home-screen .home-music-controls button { background:transparent; border:0; padding:6px 8px; font-size:13px; border-radius:50%; }
 .home-screen .home-music-controls .music-toggle { background:#fff1; width:32px; height:32px; }
 .home-screen .music-sound { background:transparent; border:0; padding:3px 5px; font-size:11px; color:var(--accent); white-space:nowrap; }
-@media(max-width:760px) { .home-screen .home-navigation { margin:0; }.home-screen .menu-ribbon { border-radius:35px; padding:20px 24px; }.home-screen .choosing-mode .menu-ribbon { padding:12px 24px; }.play-modes { margin-left:0; }.how-to-play dl>div { grid-template-columns:100px 1fr; gap:8px; } }
-@media(prefers-reduced-motion:reduce) { .home-screen .hero-record,.home-main-actions,.home-screen .menu-ribbon { transition:none; }.play-modes { animation:none; } }
+@media(max-width:760px) { .home-screen .home-navigation { margin:0; }.home-screen .menu-ribbon { border-radius:35px; padding:20px 24px; }.play-modes { margin-left:0; }.how-to-play dl>div { grid-template-columns:100px 1fr; gap:8px; } }
+@media(prefers-reduced-motion:reduce) { .home-screen .hero-record,.home-main-actions,.home-screen .menu-ribbon { transition:none; }.play-modes,.home-main-actions { animation:none; } }
 @media(max-width:760px) { .home-screen { overflow-x:clip; }.home-music { width:100%; padding-top:8px; border-top:1px solid #fff1; }.home-screen .menu-header { gap:14px; } }
 .catalog-screen .menu-header button,.catalog-screen .song-search { font-size:14px; }
 .catalog-screen .eyebrow,.catalog-screen .list-columns { font-size:11px; }
