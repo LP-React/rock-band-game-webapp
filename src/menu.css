@@ -76,6 +76,13 @@
 .mode-back,.help-button { background:transparent; border:1px solid #fff3; padding:9px 16px; border-radius:20px; font-size:14px; color:#e9dfeb; }
 .mode-back { margin-top:6px; }
 .help-button span { display:inline-grid; place-items:center; border:1px solid #fff5; border-radius:50%; width:20px; height:20px; margin-left:8px; }
+.developer-credit { margin:0; font-size:14px; }
+.developer-credit a { color:var(--accent); text-underline-offset:4px; }
+.home-footer-controls { display:flex; align-items:center; gap:24px; }
+@media(max-width:760px) {
+  .home-footer-controls { width:100%; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .home-footer-controls .fret-guide { gap:10px; }
+}
 .help-frets { display:flex; gap:12px; margin:24px 0; }
 .help-frets kbd { border:1px solid currentColor; padding:10px 15px; border-radius:8px; }
 .how-to-play dl>div { display:grid; grid-template-columns:130px 1fr; gap:16px; padding:10px 0; }

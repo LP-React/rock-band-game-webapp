@@ -23,7 +23,10 @@ export function HomeScreen({ settings, onPlay, onConfig }: { settings: Settings;
         {modes && <div id="play-modes" className="play-modes" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); closeModes() } }}><button className="mode-option" onClick={onPlay} autoFocus><span><strong>Jugar solo</strong><small>Elige tu canción</small></span><b aria-hidden="true">↗</b></button><button className="mode-option friends-mode" disabled><span><strong>Con amigos</strong><small>Próximamente</small></span><b aria-hidden="true">♬</b></button><button className="mode-back" onClick={closeModes}>← Volver</button></div>}
       </nav>
     </section>
-    <footer className="menu-footer home-footer"><div className="fret-guide">{settings.keys.map((key, lane) => <span key={lane} style={{ '--lane-color': ['#78e455', '#ff526b', '#ffdd57', '#58baff', '#ffa24f'][lane] } as CSSProperties}><kbd>{keyLabel(key)}</kbd><i /></span>)}</div><button className="help-button" onClick={() => setHelp(true)}>Cómo jugar <span aria-hidden="true">?</span></button></footer>
+    <footer className="menu-footer home-footer">
+      <p className="developer-credit">Desarrollado por <a href="https://github.com/LP-React" target="_blank" rel="noopener noreferrer">LP-React</a></p>
+      <div className="home-footer-controls"><div className="fret-guide">{settings.keys.map((key, lane) => <span key={lane} style={{ '--lane-color': ['#78e455', '#ff526b', '#ffdd57', '#58baff', '#ffa24f'][lane] } as CSSProperties}><kbd>{keyLabel(key)}</kbd><i /></span>)}</div><button className="help-button" onClick={() => setHelp(true)}>Cómo jugar <span aria-hidden="true">?</span></button></div>
+    </footer>
     {help && <HowToPlay keys={settings.keys} onClose={() => setHelp(false)} />}
   </main>
 }
