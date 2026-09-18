@@ -33,7 +33,7 @@ class Audio {
     this.gains.push(node)
     return node
   }
-  createBuffer(_, length) { const samples = new Float32Array(length); return { getChannelData: () => samples } }
+  createBuffer(_, length, rate) { const samples = new Float32Array(length); return { duration: length / rate, getChannelData: () => samples } }
   createBufferSource() {
     const node = { connect(destination) { this.destination = destination }, disconnect() {}, start(time, offset) { this.time = time; this.offset = offset }, stop() { this.stopped = true } }
     this.sources.push(node)
@@ -302,4 +302,33 @@ test('finished attempts report a chord once, preserve maximum combo and reset on
   await game.start(.5)
   assert.equal(game.stats.hits, 0); assert.equal(game.stats.maxCombo, 0)
   game.destroy()
+})
+
+test('results keep quiet looping audio without accepting hits and clean it up on restart or exit', async () => {
+  for (const completed of [false, true]) {
+    const results = [], game = new Prototype(canvas(), () => {}, result => results.push(result))
+    await game.start(.8)
+    game.audio.currentTime = game.started + 2
+    const playing = [...game.sources]
+    if (completed) game.duration = 2
+    else game.mechanics.health = 0
+    game.render()
+    assert.equal(results.length, 1)
+    assert.equal(game.active, false)
+    assert.ok(game.sources.every(source => source.loop && source.loopEnd > source.loopStart))
+    assert.equal(game.master.gain.value, .8 * .15)
+    if (!completed) assert.deepEqual(game.sources, playing)
+    const score = game.score
+    press(game, 'KeyA')
+    assert.equal(game.score, score)
+    game.setVolume(.4)
+    assert.equal(game.master.gain.value, .4 * .15)
+    const quiet = [...game.sources]
+    await game.start(.7)
+    assert.ok(quiet.every(source => source.stopped))
+    assert.equal(game.master.gain.value, .7)
+    assert.ok(game.sources.every(source => !source.loop))
+    game.destroy()
+    assert.equal(game.sources.length, 0)
+  }
 })

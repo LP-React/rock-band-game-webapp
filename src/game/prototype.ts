@@ -33,6 +33,8 @@ export class Prototype {
   private pressed = new Map<number, Set<number>>()
   private flashes = [0, 0, 0, 0, 0]
   private started = 0
+  private resultAudio = false
+  private volume = 1
   private active = false
   private paused = false
   private offset = 0
@@ -150,7 +152,7 @@ export class Prototype {
     this.canvas.focus({ preventScroll: true })
     this.notify(`Prepárate · Pulsa ${this.settings.keys.map(keyLabel).join('/')} al llegar a la línea`, true)
   }
-  setVolume(value: number) { this.master?.gain.setTargetAtTime(value, this.audio!.currentTime, 0.02) }
+  setVolume(value: number) { this.volume = value; this.master?.gain.setTargetAtTime(value * (this.resultAudio ? .15 : 1), this.audio!.currentTime, 0.02) }
   setSettings(settings: Settings) {
     if (!validKeys(settings.keys)) throw new Error('Asigna cinco teclas diferentes.')
     this.settings = { ...settings, keys: [...settings.keys] }
@@ -163,10 +165,30 @@ export class Prototype {
   stop(report = true) {
     this.loadController?.abort()
     this.generation++
+    this.resultAudio = false
     this.active = false; this.paused = false; this.offset = 0; this.held.clear()
     this.mechanics.sustains = []
     this.disconnectSources()
     if (report) this.notify('Detenido · Puedes volver a tocar', false)
+  }
+  private finish(completed: boolean) {
+    this.onResult?.(this.stats.finish(this.score, this.notes.length, completed))
+    this.active = false; this.paused = false; this.held.clear()
+    this.mechanics.sustains = []
+    this.resultAudio = true
+    const loopEnd = Math.min(...this.buffers!.map(buffer => buffer.duration))
+    const loopStart = Math.max(0, loopEnd - 20)
+    if (completed) {
+      this.disconnectSources()
+      this.master!.gain.cancelScheduledValues(this.audio!.currentTime)
+      this.master!.gain.setValueAtTime(0, this.audio!.currentTime)
+      this.playSources(loopStart)
+    }
+    this.sources.forEach(source => { source.loop = true; source.loopStart = loopStart; source.loopEnd = loopEnd })
+    this.master!.gain.cancelScheduledValues(this.audio!.currentTime)
+    this.master!.gain.setTargetAtTime(this.volume * .15, this.audio!.currentTime, .35)
+    this.guitar!.gain.setTargetAtTime(1, this.audio!.currentTime, .35)
+    this.notify(`${completed ? 'Canción terminada' : 'Fin de partida'} · ${this.score} puntos`, false)
   }
   private gain(value: number) {
     if (this.audio && this.guitar) this.guitar.gain.setTargetAtTime(value, this.audio.currentTime, 0.015)
@@ -238,8 +260,8 @@ export class Prototype {
     if (!this.paused) this.displayedScore += (this.score - this.displayedScore) * (reduced ? 1 : 1 - Math.exp(-elapsed / 85))
     if (Math.abs(this.score - this.displayedScore) < 1) this.displayedScore = this.score
     drawHighway({ theme: this.theme, canvas: this.canvas, ctx: this.ctx, time, active: this.active, held: this.held, judged: this.judged, pressed: this.pressed, flashes: this.flashes, score: Math.round(this.displayedScore), streak: this.streak, multiplier: this.multiplier(), duration: this.duration, notes: this.notes, beats: this.beats, mechanics: this.mechanics, settings: this.settings, phrases: this.phrases })
-    if (this.active && this.mechanics.health <= 0) { this.onResult?.(this.stats.finish(this.score, this.notes.length, false)); this.stop(false); this.notify(`Fin de partida · ${this.score} puntos`, false) }
-    if (this.active && time >= this.duration) { this.onResult?.(this.stats.finish(this.score, this.notes.length, true)); this.stop(false); this.notify(`Canción terminada · ${this.score} puntos`, false) }
+    if (this.active && this.mechanics.health <= 0) this.finish(false)
+    if (this.active && time >= this.duration) this.finish(true)
     this.frame = requestAnimationFrame(this.render)
   }
   destroy() {
