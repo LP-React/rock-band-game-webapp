@@ -18,7 +18,7 @@ export async function countdown(signal: AbortSignal, onStep: (step: number) => v
   for (let step = 3; step > 0; step--) {
     while (document.hidden) await wait(100, signal)
     onStep(step)
-    await wait(700, signal)
+    await wait(1000, signal)
     if (document.hidden) step++
   }
 }
