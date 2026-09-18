@@ -7,6 +7,11 @@
       "artist": "Cole Rolland",
       "album": "Numb (Linkin Park Cover) Single",
       "charter": "R.Bayu.F & Nephilim",
+      "genre": "Nu Metal",
+      "year": "2018",
+      "rating": 3,
+      "preview": "Cole Rolland - Numb (Linkin Park Cover) (R.Bayu.F & Nephilim)/song.opus",
+      "previewStart": 104.69,
       "duration": 185.256,
       "artwork": "Cole Rolland - Numb (Linkin Park Cover) (R.Bayu.F & Nephilim)/album.jpg",
       "stems": [
@@ -33,6 +38,11 @@
       "artist": "Dragonforce",
       "album": "Inhuman Rampage",
       "charter": "Neversoft",
+      "genre": "Power Metal/Speed Metal",
+      "year": "2006",
+      "rating": null,
+      "preview": "Dragonforce - Through The Fire & Flames (Neversoft)/preview.opus",
+      "previewStart": 0,
       "duration": 442.363,
       "artwork": "Dragonforce - Through The Fire & Flames (Neversoft)/album.jpg",
       "stems": [
@@ -56,11 +66,105 @@
       "warnings": []
     },
     {
+      "id": "e4712851ea8420f8",
+      "title": "BRING+EYES=DEATH+INVITE",
+      "artist": "Imperial Circus Dead Decadence",
+      "album": "Fushoku Rusanchiman, Fushi Yoku no Sarugakuza",
+      "charter": "CyclopsDragon",
+      "genre": "Symphonic Black Metal",
+      "year": "2016",
+      "rating": 5,
+      "preview": "Imperial Circus Dead Decadence - BRING+EYES=DEATH+INVITE (CyclopsDragon)/guitar.opus",
+      "previewStart": 74.5,
+      "duration": 331.37219380150145,
+      "artwork": "Imperial Circus Dead Decadence - BRING+EYES=DEATH+INVITE (CyclopsDragon)/album.jpg",
+      "stems": [
+        {
+          "path": "Imperial Circus Dead Decadence - BRING+EYES=DEATH+INVITE (CyclopsDragon)/guitar.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 336,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "336 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "aff283112cb58519",
+      "title": "Shinbatsu wo Tadori Kyoukotsu ni Itaru",
+      "artist": "Imperial Circus Dead Decadence",
+      "album": "Yomi yori Kikoyu, Koukoku no Tou to Honoo no Shoujo.",
+      "charter": "Burst76",
+      "genre": "Symphonic Metal",
+      "year": "2014",
+      "rating": 4,
+      "preview": "Imperial Circus Dead Decadence - Shinbatsu wo Tadori Kyoukotsu ni Itaru (Burst76)/song.opus",
+      "previewStart": 0,
+      "duration": 266.82,
+      "artwork": "Imperial Circus Dead Decadence - Shinbatsu wo Tadori Kyoukotsu ni Itaru (Burst76)/album.jpg",
+      "stems": [
+        {
+          "path": "Imperial Circus Dead Decadence - Shinbatsu wo Tadori Kyoukotsu ni Itaru (Burst76)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 184,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "184 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "68ca8a4c10071ae5",
+      "title": "Jiyuu no Tsubasa",
+      "artist": "Linked Horizon",
+      "album": "Attack on Titan -Jiyu no Tsubasa- Original sound track",
+      "charter": "Buldy",
+      "genre": "J-Rock",
+      "year": "2015",
+      "rating": 4,
+      "preview": "Linked Horizon - Jiyuu no Tsubasa (Buldy)/guitar.opus",
+      "previewStart": 162.11,
+      "duration": 327.497,
+      "artwork": "Linked Horizon - Jiyuu no Tsubasa (Buldy)/album.jpg",
+      "stems": [
+        {
+          "path": "Linked Horizon - Jiyuu no Tsubasa (Buldy)/guitar.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 0,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
       "id": "f2507e5315d8ed44",
       "title": "Faint",
       "artist": "Linkin Park",
       "album": "Meteora",
       "charter": "heather",
+      "genre": "Nu Metal",
+      "year": "2003",
+      "rating": 1,
+      "preview": "Linkin Park - Faint (heather)/song.opus",
+      "previewStart": 53.29,
       "duration": 164.6,
       "artwork": "Linkin Park - Faint (heather)/album.jpg",
       "stems": [
@@ -85,6 +189,11 @@
       "artist": "Linkin Park",
       "album": "Minutes to Midnight",
       "charter": "heather",
+      "genre": "Nu Metal",
+      "year": "2007",
+      "rating": 2,
+      "preview": "Linkin Park - Given Up (heather)/song.opus",
+      "previewStart": 92.05,
       "duration": 189.29,
       "artwork": "Linkin Park - Given Up (heather)/album.jpg",
       "stems": [
@@ -100,6 +209,36 @@
       ],
       "warnings": [
         "159 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "9c5d2d62d8362716",
+      "title": "What I've Done",
+      "artist": "Linkin Park",
+      "album": "Minutes to Midnight",
+      "charter": "heather",
+      "genre": "Rock",
+      "year": "2007",
+      "rating": 1,
+      "preview": "Linkin Park - What I've Done (heather)/song.opus",
+      "previewStart": 65.75,
+      "duration": 206.21,
+      "artwork": "Linkin Park - What I've Done (heather)/album.jpg",
+      "stems": [
+        {
+          "path": "Linkin Park - What I've Done (heather)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 10,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "10 open notes preserved in chart data but excluded from current five-color gameplay",
         "Mixed audio: guitar cannot be muted independently"
       ]
     }

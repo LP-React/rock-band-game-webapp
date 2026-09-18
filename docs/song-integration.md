@@ -27,7 +27,7 @@ Per the user's decision, open notes are preserved in generated chart data, but f
 
 Audio discovery recognizes conventional song/guitar/rhythm/bass/keys/drums/vocals/crowd stems in Opus, Ogg, MP3, WAV, or FLAC. Multiple encodings for the same role produce an error. Numbered drum stems take precedence over a combined drum stem. Codec decoding still depends on the browser; naming a supported extension does not certify every encoding. Referenced nonstandard stream names are pending. Stems of unequal length start at the same audio origin; attempt length uses the longest decoded stem.
 
-Independent guitar attenuation requires a guitar stem plus another stem. Single full mixes remain audible on misses. Album artwork is optional with a fallback. Preview and background video playback remain pending; originals are preserved, and video discovery emits a warning. Decoded audio memory/performance still needs measurement; only the selected song is cached.
+Independent guitar attenuation requires a guitar stem plus another stem. Single full mixes remain audible on misses. Album artwork is optional with a fallback. Catalog samples use `preview` audio in the supported extensions, otherwise `song` audio or the first available stem. Dedicated previews start at zero; fallback samples use INI `preview_start_time` in milliseconds, or zero if missing/invalid. Samples stop after 20 seconds or when leaving/changing selection. Genre, year, and guitar rating are imported with existing metadata. Background video playback remains pending; originals are preserved, and video discovery emits a warning. Decoded audio memory/performance still needs measurement; only the selected song is cached.
 
 Bad folders are listed in the command report and manifest without blocking valid folders. If no valid songs remain, import exits with an error and preserves the previous generated catalog. Old generated hash-named charts are removed only after a successful catalog write. Import does not certify universal Clone Hero compatibility.
 
@@ -39,6 +39,10 @@ Bad folders are listed in the command report and manifest without blocking valid
 | Numb (Linkin Park Cover) / Cole Rolland | `.chart` | Expert 591 imported / 495 playable | 96 | Full mix |
 | Faint / Linkin Park | `.chart` | Expert 525 | 0 | Full mix |
 | Given Up / Linkin Park | `.chart` | Expert 507 imported / 348 playable | 159 | Full mix |
+| What I've Done / Linkin Park | `.chart` | Expert 694 imported / 684 playable | 10 | Full mix |
+| Jiyuu no Tsubasa / Linked Horizon | `.chart` | Expert 1957 | 0 | Full mix |
+| BRING+EYES=DEATH+INVITE / Imperial Circus Dead Decadence | `.chart` | Expert 2252 imported / 1916 playable | 336 | Full mix |
+| Shinbatsu wo Tadori Kyoukotsu ni Itaru / Imperial Circus Dead Decadence | `.chart` | Expert 1612 imported / 1428 playable | 184 | Full mix |
 
 Validation covers original counts, tempo changes, offsets, extended sustains, phrase parsing, open-note preservation, missing files, nested/case-insensitive discovery, ambiguous audio, mixed/separated routing, and decoding errors. Browser checked selection/difficulties, actual Opus decoding/start, and pause for all four songs. Full-length listening, latency, and broad package/browser compatibility remain unverified.
 

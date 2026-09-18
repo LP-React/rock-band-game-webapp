@@ -10,6 +10,7 @@ function asset(path: string) {
 }
 export const songs = manifest.songs.map(entry => ({
   ...entry, artwork: entry.artwork ? asset(entry.artwork) : '/favicon.svg',
+  preview: asset(entry.preview),
   stems: entry.stems.map(stem => ({ url: asset(stem.path), guitar: stem.guitar })),
   difficulties: entry.difficulties as Difficulty[], charts: {}, beats: [],
 }))

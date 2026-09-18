@@ -18,4 +18,9 @@ export interface Song {
   reactiveGuitar?: boolean
   warnings?: string[]
   openNotes?: number
+  genre?: string
+  year?: string
+  rating?: number | null
+  preview?: string
+  previewStart?: number
 }

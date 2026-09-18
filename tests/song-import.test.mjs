@@ -69,6 +69,8 @@ test('discovery handles nested folders/case, isolates broken packages and report
     let result = await discoverSongs(root)
     assert.equal(result.songs.length, 1)
     assert.equal(result.songs[0].entry.title, 'Valid')
+    assert.equal(result.songs[0].entry.preview, 'nested/valid/SONG.OPUS')
+    assert.equal(result.songs[0].entry.previewStart, 0)
     assert.equal(result.errors.length, 1)
     assert.match(result.errors[0].message, /Missing/)
     await writeFile(join(valid, 'song.ogg'), '')
@@ -80,6 +82,40 @@ test('discovery handles nested folders/case, isolates broken packages and report
     await rm(root, { recursive: true, force: true })
   }
 })
+test('preview discovery respects dedicated files and INI millisecond offsets', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'riff-preview-'))
+  try {
+    await writeFile(join(root, 'notes.chart'), fixture)
+    await writeFile(join(root, 'song.opus'), '')
+    await writeFile(join(root, 'song.ini'), '[song]\npreview_start_time = 12340\ngenre = Rock\nyear = , 2007\ndiff_guitar = 4\n')
+    let result = await readPackage(root, 'sample')
+    assert.equal(result.entry.previewStart, 12.34)
+    assert.equal(result.entry.genre, 'Rock')
+    assert.equal(result.entry.year, '2007')
+    assert.equal(result.entry.rating, 4)
+    await writeFile(join(root, 'PREVIEW.OPUS'), '')
+    result = await readPackage(root, 'sample')
+    assert.equal(result.entry.preview, 'sample/PREVIEW.OPUS')
+    assert.equal(result.entry.previewStart, 0)
+  } finally {
+    assert.ok(root.startsWith(join(tmpdir(), 'riff-preview-')))
+    await rm(root, { recursive: true, force: true })
+  }
+})
 test('INI comments/other sections do not replace song metadata', () => {
   assert.deepEqual(readIni('\uFEFF[song]\nname = A=B\n;name = Wrong\n# comment\n[other]\nname = Wrong'), { name: 'A=B' })
+})
+test('additional catalog packages retain their expert charts and pending open groups', async () => {
+  const root = fileURLToPath(new URL('../src/musics/', import.meta.url))
+  for (const [folder, count, open] of [
+    ["Linkin Park - What I've Done (heather)", 694, 10],
+    ['Linked Horizon - Jiyuu no Tsubasa (Buldy)', 1957, 0],
+    ['Imperial Circus Dead Decadence - BRING+EYES=DEATH+INVITE (CyclopsDragon)', 2252, 336],
+    ['Imperial Circus Dead Decadence - Shinbatsu wo Tadori Kyoukotsu ni Itaru (Burst76)', 1612, 184],
+  ]) {
+    const song = await readPackage(join(root, folder), folder)
+    assert.deepEqual(song.entry.difficulties, ['expert'])
+    assert.equal(song.data.charts.expert.length, count)
+    assert.equal(song.entry.openNotes, open)
+  }
 })

@@ -44,6 +44,11 @@ export async function readPackage(folder, relative) {
   const reactiveGuitar = stems.length > 1 && stems.some(s => s.guitar)
   if (!reactiveGuitar) { stems.forEach(s => { s.guitar = false }); warnings.push('Mixed audio: guitar cannot be muted independently') }
   const artwork = ['album.jpg', 'album.png', 'album.jpeg', 'album.webp'].map(find).find(Boolean)
+  const previewFile = extensions.map(ext => find(`preview.${ext}`)).find(Boolean)
+  const preview = previewFile ? `${relative}/${previewFile}` : stems.find(stem => /\/song\./i.test(stem.path))?.path ?? stems[0].path
+  const previewMs = Number(metadata.preview_start_time ?? 0)
+  const previewStart = previewFile ? 0 : Number.isFinite(previewMs) && previewMs >= 0 ? previewMs / 1000 : 0
+  const rating = Number(metadata.diff_guitar ?? -1)
   if (files.some(f => /^video\./i.test(f))) warnings.push('Background video found; playback is not implemented yet')
   const clean = value => (value ?? '').replace(/<[^>]+>/g, '')
   const duration = Number(metadata.song_length ?? 0) / 1000 || Math.max(...Object.values(data.charts).map(notes => notes.at(-1).time + Math.max(0, ...(notes.at(-1).durations ?? []), notes.at(-1).openDuration ?? 0))) + 2
@@ -51,7 +56,7 @@ export async function readPackage(folder, relative) {
   const id = createHash('sha256').update(relative).digest('hex').slice(0, 16)
   const difficulties = Object.keys(data.charts).filter(key => data.charts[key].some(note => !note.open))
   if (!difficulties.length) throw new Error('No colored guitar notes; open-only charts are pending')
-  return { data, entry: { id, title: clean(metadata.name ?? fallback.Name ?? relative.split('/').at(-1)), artist: clean(metadata.artist ?? fallback.Artist ?? 'Unknown artist'), album: clean(metadata.album ?? fallback.Album), charter: clean(metadata.charter ?? fallback.Charter), duration, artwork: artwork ? `${relative}/${artwork}` : '', stems, reactiveGuitar, openNotes, difficulties, warnings } }
+  return { data, entry: { id, title: clean(metadata.name ?? fallback.Name ?? relative.split('/').at(-1)), artist: clean(metadata.artist ?? fallback.Artist ?? 'Unknown artist'), album: clean(metadata.album ?? fallback.Album), charter: clean(metadata.charter ?? fallback.Charter), genre: clean(metadata.genre ?? fallback.Genre), year: clean(metadata.year ?? fallback.Year).replace(/^,\s*/, ''), rating: Number.isFinite(rating) && rating >= 0 ? rating : null, preview, previewStart, duration, artwork: artwork ? `${relative}/${artwork}` : '', stems, reactiveGuitar, openNotes, difficulties, warnings } }
 }
 export async function discoverSongs(root) {
   const songs = [], errors = []
