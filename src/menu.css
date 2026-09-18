@@ -111,19 +111,17 @@
 .home-screen .home-music-controls button { background:transparent; border:0; padding:6px 8px; font-size:13px; border-radius:50%; }
 .home-screen .home-music-controls .music-toggle { background:#fff1; width:32px; height:32px; }
 .home-screen .music-sound { background:transparent; border:0; padding:3px 5px; font-size:11px; color:var(--accent); white-space:nowrap; }
-.home-screen .home-sound-prompt { position:absolute; top:104px; left:50%; transform:translateX(-50%); z-index:3; display:flex; align-items:center; gap:12px; padding:12px 20px; background:var(--secondary); color:var(--on-accent); border:1px solid var(--accent); border-radius:12px; box-shadow:0 8px 28px #0005; text-align:left; }
-.home-sound-prompt>span:first-child { font-size:26px; }
-.home-sound-prompt strong,.home-sound-prompt small { display:block; }
-.home-sound-prompt strong { font-size:16px; }
-.home-sound-prompt small { margin-top:3px; font-size:12px; }
+.home-screen .menu-header { position:relative; }
+.home-screen .home-music { width:min(430px,36vw); }
+.home-screen .home-sound-prompt { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:3; display:flex; align-items:center; gap:7px; padding:8px 14px; background:var(--secondary); color:var(--on-accent); border:1px solid var(--accent); border-radius:20px; font-size:13px; white-space:nowrap; }
+.home-sound-prompt>span { font-size:17px; }
 .home-screen .home-sound-prompt:hover { filter:brightness(1.08); }
 @media(max-width:760px) {
-  .home-music { flex-wrap:wrap; }
-  .home-screen .home-sound-prompt { position:static; transform:none; order:-1; width:100%; justify-content:center; }
+  .home-screen .home-sound-prompt { top:14px; left:auto; right:5%; transform:none; padding:7px 12px; font-size:12px; }
 }
 @media(max-width:760px) { .home-screen .home-navigation { margin:0; }.home-screen .menu-ribbon { border-radius:35px; padding:20px 24px; }.play-modes { margin-left:0; }.how-to-play dl>div { grid-template-columns:100px 1fr; gap:8px; } }
 @media(prefers-reduced-motion:reduce) { .home-screen .hero-record,.home-main-actions,.home-screen .menu-ribbon { transition:none; }.play-modes,.home-main-actions { animation:none; } }
-@media(max-width:760px) { .home-screen { overflow-x:clip; }.home-music { width:100%; padding-top:8px; border-top:1px solid #fff1; }.home-screen .menu-header { gap:14px; } }
+@media(max-width:760px) { .home-screen { overflow-x:clip; }.home-screen .home-music { width:100%; padding-top:8px; border-top:1px solid #fff1; }.home-screen .menu-header { gap:14px; } }
 .catalog-screen .menu-header button,.catalog-screen .song-search { font-size:14px; }
 .catalog-screen .eyebrow,.catalog-screen .list-columns { font-size:11px; }
 .catalog-screen .song-search input { font-size:15px; }
