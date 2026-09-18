@@ -27,7 +27,8 @@ export function drawHighway(state: RenderState) {
       const ambient = c.createRadialGradient(w * .5, h * .3, 10, w * .5, h * .5, w * .6)
       ambient.addColorStop(0, state.mechanics.boost ? accent + '70' : panel); ambient.addColorStop(1, '#07090dd9')
       const board = c.createLinearGradient(0, h * .08, 0, h * 1.04); board.addColorStop(0, '#111218'); board.addColorStop(1, '#24252d')
-      const entrance = c.createLinearGradient(0, h * .08, 0, h * .28); entrance.addColorStop(0, '#101018'); entrance.addColorStop(1, '#07090d00')
+      const entrance = c.createLinearGradient(0, h * .02, 0, h * .20)
+      entrance.addColorStop(0, '#020308'); entrance.addColorStop(.35, '#030407f2'); entrance.addColorStop(1, '#07090d00')
       const meter = c.createLinearGradient(0, h * .55 + Math.min(170, h * .27), 0, h * .55)
       meter.addColorStop(0, panel); meter.addColorStop(.5, accent); meter.addColorStop(1, selection)
       cached = { key, ambient, board, entrance, meter }; backgrounds.set(c, cached)
@@ -145,9 +146,11 @@ export function drawHighway(state: RenderState) {
       const p = point(lane + .5, hit)
       c.fillStyle = '#b6b7c3'; c.font = '11px Segoe UI'; c.textAlign = 'center'; c.fillText(keyLabel(state.settings.keys[lane]), p.x, p.y + p.width * .45)
     })
-    // Fade the distant entrance, including rails and arriving notes, into the background.
-    c.save(); path([point(0, 0), point(5, 0), point(5, 1), point(0, 1)]); c.clip()
-    c.fillStyle = cached.entrance; c.fillRect(0, top - 1, w, h * .20 + 1); c.restore()
+    // Hide notes slightly above the board before revealing them through a short entrance fade.
+    const entranceTop = top - Math.max(24, h * .06)
+    const distantLeft = point(0, 0), distantRight = point(5, 0)
+    c.save(); path([{ x: distantLeft.x, y: entranceTop }, { x: distantRight.x, y: entranceTop }, point(5, 1), point(0, 1)]); c.clip()
+    c.fillStyle = cached.entrance; c.fillRect(0, entranceTop, w, h * .20 - entranceTop + 1); c.restore()
     const compact = w < 700
     const boardLeft = point(0, hit).x
     const hudX = compact ? 12 : Math.max(20, boardLeft - 240), hudY = h * (compact ? .30 : .60)
