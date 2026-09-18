@@ -29,6 +29,6 @@ export function HomeScreen({ settings, onVolumeChange, onPlay, onConfig }: { set
       <p className="developer-credit">Desarrollado por <a href="https://github.com/LP-React" target="_blank" rel="noopener noreferrer">LP-React</a></p>
       <div className="home-footer-controls"><div className="fret-guide">{settings.keys.map((key, lane) => <span key={lane} style={{ '--lane-color': ['#78e455', '#ff526b', '#ffdd57', '#58baff', '#ffa24f'][lane] } as CSSProperties}><kbd>{keyLabel(key)}</kbd><i /></span>)}</div><button className="help-button" onClick={() => setHelp(true)}>Cómo jugar <span aria-hidden="true">?</span></button></div>
     </footer>
-    {help && <HowToPlay keys={settings.keys} onClose={() => setHelp(false)} />}
+    {help && <HowToPlay keys={settings.keys} theme={song.theme} onClose={() => setHelp(false)} />}
   </main>
 }
