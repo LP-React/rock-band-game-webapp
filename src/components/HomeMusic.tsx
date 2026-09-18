@@ -5,12 +5,19 @@ import { menuLevels } from '../game/menu-audio'
 import { fallbackTheme } from '../songs/presentation'
 
 export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: number; canvas: RefObject<HTMLCanvasElement | null>; index: number; onSongChange: (index: number) => void }) {
-  const [playing, setPlaying] = useState(false), [error, setError] = useState('')
+  const [playing, setPlaying] = useState(true), [error, setError] = useState('')
   const [muted, setMuted] = useState(true)
   const [autoStart, setAutoStart] = useState(true)
   const audio = useRef<HTMLAudioElement>(null)
   const graph = useRef<{ context: AudioContext; analyser: AnalyserNode } | null>(null)
   const continuePlaying = useRef(true), levels = useRef<Float32Array>(new Float32Array())
+  const silentClock = useRef<{ started: number | null; time: number }>({ started: null, time: 0 })
+  function silentTime() {
+    const clock = silentClock.current
+    const elapsed = clock.started === null ? 0 : (performance.now() - clock.started) / 1000
+    const duration = levels.current.length / 20
+    return duration ? (clock.time + elapsed) % duration : clock.time
+  }
   const song = songs[index]
   const ringColor = useRef(fallbackTheme.selection), redraw = useRef<(() => void) | null>(null)
   useEffect(() => {
@@ -21,9 +28,15 @@ export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: num
   useEffect(() => {
     const controller = new AbortController()
     levels.current = new Float32Array()
-    void menuLevels(song.preview, controller.signal).then(data => { if (!controller.signal.aborted) levels.current = data }).catch(() => { /* Keep playback available without visualization on decode failure. */ })
+    silentClock.current = { started: null, time: 0 }
+    void menuLevels(song.preview, controller.signal).then(data => {
+      if (controller.signal.aborted) return
+      levels.current = data
+      silentClock.current = { started: continuePlaying.current ? performance.now() : null, time: Math.max(0, Math.min(song.previewStart ?? 0, Math.max(0, data.length / 20 - 1))) }
+      redraw.current?.()
+    }).catch(() => { /* Keep native playback available on decode failure. */ })
     return () => controller.abort()
-  }, [song.preview])
+  }, [song.preview, song.previewStart])
   useEffect(() => {
     const player = audio.current!
     const surface = canvas.current!, painter = surface.getContext('2d')!
@@ -34,12 +47,14 @@ export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: num
     function draw() {
       cancelAnimationFrame(frame)
       const analyser = graph.current?.analyser
-      const silentLevel = levels.current[Math.floor(player.currentTime * 20)] ?? 0
-      impact = player.paused || reduced.matches ? 0 : Math.max(impact * .86, Math.max(0, silentLevel - previousLevel) * 3)
+      const active = !player.paused || (player.muted && continuePlaying.current && silentClock.current.started !== null)
+      const time = player.paused ? silentTime() : player.currentTime
+      const silentLevel = levels.current[Math.floor(time * 20)] ?? 0
+      impact = !active || reduced.matches ? 0 : Math.max(impact * .86, Math.max(0, silentLevel - previousLevel) * 3)
       previousLevel = silentLevel
       if (analyser && !player.paused && !player.muted) analyser.getByteFrequencyData(data)
-      else data.fill(player.paused ? 0 : silentLevel * 210)
-      const pulse = player.paused || reduced.matches ? 0 : silentLevel ** 3 * .06 + Math.min(1, impact) * .045
+      else data.fill(active ? silentLevel * 210 : 0)
+      const pulse = !active || reduced.matches ? 0 : silentLevel ** 3 * .06 + Math.min(1, impact) * .045
       surface.parentElement!.style.setProperty('--record-pulse', String(1 + pulse))
       painter.clearRect(0, 0, 600, 600)
       painter.strokeStyle = ringColor.current; painter.lineWidth = 2
@@ -63,7 +78,7 @@ export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: num
         painter.beginPath(); painter.moveTo(300 + Math.cos(angle) * 246, 300 + Math.sin(angle) * 246)
         painter.lineTo(300 + Math.cos(angle) * (250 + energy * 44), 300 + Math.sin(angle) * (250 + energy * 44)); painter.stroke()
       }
-      if (!player.paused && !reduced.matches && !document.hidden) frame = requestAnimationFrame(draw)
+      if (active && !reduced.matches && !document.hidden) frame = requestAnimationFrame(draw)
     }
     redraw.current = draw
     player.addEventListener('play', draw); player.addEventListener('pause', draw)
@@ -71,7 +86,7 @@ export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: num
     draw()
     // Cached media can finish loading before effects attach (including Strict Mode remounts).
     queueMicrotask(() => {
-      if (!disposed && continuePlaying.current && player.readyState >= 1) void player.play().catch(error => { if (!disposed && error.name !== 'AbortError') setError('Pulsa reproducir para iniciar la música.') })
+      if (!disposed && continuePlaying.current && player.readyState >= 1) void player.play().catch(error => { if (!disposed && !player.muted && error.name !== 'AbortError') setError('Pulsa reproducir para iniciar la música.') })
     })
     return () => {
       disposed = true
@@ -82,6 +97,10 @@ export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: num
     }
   }, [canvas])
   async function play(audible = !audio.current!.muted) {
+    continuePlaying.current = true
+    if (silentClock.current.started === null) silentClock.current.started = performance.now()
+    setPlaying(true)
+    redraw.current?.()
     try {
       if (audible && !graph.current) {
         const context = new AudioContext(), analyser = context.createAnalyser()
@@ -89,20 +108,33 @@ export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: num
         context.createMediaElementSource(audio.current!).connect(analyser); analyser.connect(context.destination)
         graph.current = { context, analyser }
       }
-      if (audible) { await graph.current!.context.resume(); audio.current!.muted = false; setMuted(false) }
+      if (audible) {
+        if (audio.current!.paused && audio.current!.readyState >= 1) audio.current!.currentTime = silentTime()
+        await graph.current!.context.resume(); audio.current!.muted = false; setMuted(false)
+      }
       await audio.current!.play(); setError('')
-    } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) setError('Pulsa reproducir para iniciar la música.') }
+    } catch (error) {
+      if (audible && !(error instanceof DOMException && error.name === 'AbortError')) {
+        audio.current!.muted = true; setMuted(true); redraw.current?.()
+        setError('No se pudo activar el sonido. Inténtalo de nuevo.')
+      }
+    }
+  }
+  function pause() {
+    silentClock.current = { started: null, time: audio.current!.paused ? silentTime() : audio.current!.currentTime }
+    continuePlaying.current = false
+    audio.current!.pause(); setPlaying(false); redraw.current?.()
   }
   function change(step: number) {
-    continuePlaying.current = !audio.current!.paused
+    continuePlaying.current = playing
     setAutoStart(continuePlaying.current)
     audio.current!.pause(); setError(''); onSongChange((index + step + songs.length) % songs.length)
   }
   return <div className="home-music" aria-label="Reproductor del menú">
-    <audio ref={audio} src={song.preview} preload="auto" loop muted={muted} autoPlay={autoStart} playsInline onLoadedMetadata={() => { const player = audio.current!; player.currentTime = Math.max(0, Math.min(song.previewStart ?? 0, Math.max(0, player.duration - 1))); if (continuePlaying.current) void play() }} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={() => setError('Audio no disponible. Prueba otra canción.')} />
+    <audio ref={audio} src={song.preview} preload="auto" loop muted={muted} autoPlay={autoStart} playsInline onLoadedMetadata={() => { const player = audio.current!; player.currentTime = Math.max(0, Math.min(song.previewStart ?? 0, Math.max(0, player.duration - 1))); if (continuePlaying.current) void play() }} onPlay={() => setPlaying(true)} onPause={() => { if (!continuePlaying.current) setPlaying(false) }} onError={() => { pause(); setError('Audio no disponible. Prueba otra canción.') }} />
     {muted && <button className="home-sound-prompt" onClick={() => void play(true)}><span aria-hidden="true">♫</span> Activar sonido</button>}
     <img src={song.artwork} alt="" />
     <div className="home-music-copy"><small>{playing ? muted ? 'REPRODUCIENDO · SIN SONIDO' : 'SONANDO AHORA' : 'EN PAUSA'}</small><strong>{song.title}</strong><span>{song.artist}</span>{error && <span role="status">{error}</span>}</div>
-    <div className="home-player-actions"><div className="home-music-controls"><button aria-label="Canción anterior" onClick={() => change(-1)}>⏮</button><button className="music-toggle" aria-label={playing ? 'Pausar música' : 'Reproducir música'} onClick={() => { if (playing) audio.current!.pause(); else void play() }}>{playing ? 'Ⅱ' : '▶'}</button><button aria-label="Siguiente canción" onClick={() => change(1)}>⏭</button></div>{!muted && <button className="music-sound" aria-label="Silenciar música" onClick={() => { audio.current!.muted = true; setMuted(true) }}>Silenciar</button>}</div>
+    <div className="home-player-actions"><div className="home-music-controls"><button aria-label="Canción anterior" onClick={() => change(-1)}>⏮</button><button className="music-toggle" aria-label={playing ? 'Pausar música' : 'Reproducir música'} onClick={() => { if (playing) pause(); else void play() }}>{playing ? 'Ⅱ' : '▶'}</button><button aria-label="Siguiente canción" onClick={() => change(1)}>⏭</button></div>{!muted && <button className="music-sound" aria-label="Silenciar música" onClick={() => { audio.current!.muted = true; setMuted(true) }}>Silenciar</button>}</div>
   </div>
 }
