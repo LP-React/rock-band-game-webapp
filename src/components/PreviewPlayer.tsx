@@ -3,6 +3,7 @@ import { MenuFade, menuFadeTimes } from '../game/menu-fade'
 export function PreviewPlayer({ url, start, volume, onPlaybackChange }: { url?: string; start: number; volume: number; onPlaybackChange?: (playing: boolean) => void }) {
   const audio = useRef<HTMLAudioElement>(null), enabled = useRef(true)
   const fade = useRef<MenuFade | null>(null), ending = useRef(false)
+  const context = useRef<AudioContext | null>(null)
   const repeat = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [waiting, setWaiting] = useState(false)
   const [playing, setPlaying] = useState(false), [error, setError] = useState('')
@@ -12,7 +13,7 @@ export function PreviewPlayer({ url, start, volume, onPlaybackChange }: { url?: 
   useEffect(() => {
     const player = audio.current!
     fade.current = new MenuFade(player)
-    return () => { clearTimeout(repeat.current); fade.current?.cancel(); player.pause() }
+    return () => { clearTimeout(repeat.current); fade.current?.cancel(); player.pause(); void context.current?.close(); context.current = null }
   }, [])
   useEffect(() => { fade.current?.setVolume(volume) }, [volume])
   useEffect(() => {
@@ -28,7 +29,13 @@ export function PreviewPlayer({ url, start, volume, onPlaybackChange }: { url?: 
     })
     return () => { cancelled = true; clearTimeout(repeat.current); fade.current?.cancel() }
   }, [url])
-  async function play() { clearTimeout(repeat.current); setWaiting(false); ending.current = false; fade.current?.cancel(); try { await audio.current?.play(); void fade.current?.to(1, menuFadeTimes.entrance); setError('') } catch { setError('Pulsa Escuchar para iniciar el audio.') } }
+  async function play() { clearTimeout(repeat.current); setWaiting(false); ending.current = false; fade.current?.cancel(); try {
+    if (!context.current) {
+      const graph = new AudioContext(), amplifier = graph.createGain()
+      graph.createMediaElementSource(audio.current!).connect(amplifier); amplifier.connect(graph.destination)
+      fade.current?.attach(amplifier); context.current = graph
+    }
+    await context.current.resume(); await audio.current?.play(); void fade.current?.to(1, menuFadeTimes.entrance); setError('') } catch { setError('Pulsa Escuchar para iniciar el audio.') } }
   async function pause() { clearTimeout(repeat.current); setWaiting(false); if (await fade.current?.to(0, menuFadeTimes.pause)) audio.current?.pause() }
   async function finish() {
     if (ending.current || !enabled.current) return

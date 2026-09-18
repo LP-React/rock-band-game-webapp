@@ -113,7 +113,9 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
       if (audible && !graph.current) {
         const context = new AudioContext(), analyser = context.createAnalyser()
         analyser.fftSize = 256; analyser.smoothingTimeConstant = .55
-        context.createMediaElementSource(audio.current!).connect(analyser); analyser.connect(context.destination)
+        const amplifier = context.createGain()
+        context.createMediaElementSource(audio.current!).connect(analyser); analyser.connect(amplifier); amplifier.connect(context.destination)
+        fade.current?.attach(amplifier)
         graph.current = { context, analyser }
       }
       if (audible) {
@@ -155,7 +157,7 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
         <button className="music-volume-toggle" aria-label={muted ? 'Activar sonido' : 'Silenciar música'} title={muted ? 'Activar sonido' : 'Silenciar música'} aria-pressed={!muted} onClick={() => { if (muted) void play(true); else void mute() }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4Z" />{muted || volume === 0 ? <path d="m16 9 6 6m0-6-6 6" /> : <><path d="M15 8a6 6 0 0 1 0 8" /><path d="M18 5a10 10 0 0 1 0 14" /></>}</svg>
         </button>
-        <div className="home-volume-panel"><label>Volumen <span>{volume}%</span><input type="range" min="0" max="100" value={volume} aria-label="Volumen de la música" onChange={event => onVolumeChange(Number(event.target.value))} /></label></div>
+        <div className="home-volume-panel"><label>Volumen <span>{volume}%</span><input type="range" min="0" max="200" value={volume} aria-label="Volumen de la música" onChange={event => onVolumeChange(Number(event.target.value))} /></label></div>
       </div>
     </div>
   </div>

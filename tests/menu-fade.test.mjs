@@ -26,3 +26,18 @@ test('menu fades honor saved volume and cancel obsolete pause transitions', asyn
   fade.cancel()
   assert.equal(await pending, false)
 })
+
+test('menu amplification supports 200 percent without exceeding media volume limits', async () => {
+  const player = { volume: 1 }, amplifier = { gain: { value: 1 } }, fade = new MenuFade(player)
+  fade.setVolume(200)
+  fade.attach(amplifier)
+  await fade.to(1, 20)
+  assert.equal(player.volume, 1)
+  assert.equal(amplifier.gain.value, 2)
+  await fade.to(0, 20)
+  assert.equal(player.volume, 0)
+  fade.setVolume(65)
+  await fade.to(1, 20)
+  assert.equal(player.volume, .65)
+  assert.equal(amplifier.gain.value, 1)
+})

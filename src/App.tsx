@@ -57,6 +57,6 @@ export default function App({ children }: { children: ReactNode }) {
   }
   return <SessionContext.Provider value={{ homeMuted, setHomeMuted, settings, setSettings, selected, difficulty, select, setDifficulty, menuVariant, setMenuVariant, attempt, beginPlay, clearAttempt: () => setAttempt(null), configure: () => setConfig(true) }}>
     {children}
-    {config && <SettingsPanel settings={settings} onSave={setSettings} onClose={() => setConfig(false)} />}
+    {config && <SettingsPanel theme={songs.find(song => song.id === selected)?.theme} settings={settings} onSave={setSettings} onClose={() => setConfig(false)} />}
   </SessionContext.Provider>
 }

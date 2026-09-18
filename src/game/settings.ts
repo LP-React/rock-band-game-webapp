@@ -7,7 +7,7 @@ export function validKeys(keys: string[]) {
 export function readSettings(): Settings {
   try {
     const data = JSON.parse(localStorage.getItem('riff-settings') ?? 'null')
-    if (data && validKeys(data.keys) && Number.isFinite(data.volume) && data.volume >= 0 && data.volume <= 100 && data.speed >= .5 && data.speed <= 2) return data
+    if (data && validKeys(data.keys) && Number.isFinite(data.volume) && data.volume >= 0 && data.volume <= 200 && Number.isFinite(data.speed) && data.speed >= .5 && data.speed <= 4) return data
   } catch { /* Storage may be unavailable. */ }
   return { ...defaults, keys: [...defaults.keys] }
 }
