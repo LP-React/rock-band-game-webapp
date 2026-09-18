@@ -42,6 +42,17 @@
 @media(prefers-reduced-motion:reduce) { .menu-backdrop { animation:none; }.hero-record,.menu-ribbon,.song-row { transition:none; } }
 
 /* Album-led catalog detail; list geometry and song palettes stay unchanged. */
+.record-stage { position:relative; display:inline-block; }
+.record-spectrum { position:absolute; width:130%; height:130%; left:-15%; top:-15%; pointer-events:none; }
+.home-music { display:flex; align-items:center; gap:12px; width:min(430px,45vw); }
+.home-music>img { width:44px; height:44px; object-fit:cover; border-radius:6px; }
+.home-music-copy { display:flex; flex-direction:column; gap:3px; min-width:0; flex:1; }
+.home-music-copy small { font-size:9px; letter-spacing:1.5px; color:var(--accent); }
+.home-music-copy strong { font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.home-music-copy span { font-size:11px; color:#c8bcca; }
+.home-music-controls { display:flex; gap:4px; }
+.home-screen .home-music-controls button { padding:7px 10px; font-size:16px; }
+@media(max-width:760px) { .home-screen { overflow-x:clip; }.home-music { width:100%; padding-top:8px; border-top:1px solid #fff1; }.home-screen .menu-header { gap:14px; } }
 .catalog-screen .menu-header button,.catalog-screen .song-search { font-size:14px; }
 .catalog-screen .eyebrow,.catalog-screen .list-columns { font-size:11px; }
 .catalog-screen .song-search input { font-size:15px; }
