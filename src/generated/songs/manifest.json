@@ -2,6 +2,37 @@
   "schemaVersion": 1,
   "songs": [
     {
+      "id": "f726df32cc0b8440",
+      "title": "Megitsune",
+      "artist": "Babymetal",
+      "album": "Babymetal",
+      "charter": "Nightmare Lyre & Mathespio",
+      "genre": "Metal",
+      "year": "2014",
+      "rating": 4,
+      "preview": "Babymetal - Megitsune (Nightmare Lyre & Mathespio)/song.opus",
+      "previewStart": 45.005,
+      "duration": 251.036,
+      "artwork": "Babymetal - Megitsune (Nightmare Lyre & Mathespio)/album.jpg",
+      "stems": [
+        {
+          "path": "Babymetal - Megitsune (Nightmare Lyre & Mathespio)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 0,
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ],
+      "warnings": [
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
       "id": "edf3a66ed264dbee",
       "title": "Numb (Linkin Park Cover)",
       "artist": "Cole Rolland",
@@ -64,6 +95,37 @@
         "expert"
       ],
       "warnings": []
+    },
+    {
+      "id": "98b4df817b02099f",
+      "title": "Let Me Hear",
+      "artist": "Fear, And Loathing In Las Vegas",
+      "album": "Feeling of Unity",
+      "charter": "Ghostbyob",
+      "genre": "Metal",
+      "year": "2015",
+      "rating": 4,
+      "preview": "Fear, And Loathing In Las Vegas - Let Me Hear (Ghostbyob)/song.opus",
+      "previewStart": 60,
+      "duration": 226.673,
+      "artwork": "Fear, And Loathing In Las Vegas - Let Me Hear (Ghostbyob)/album.jpg",
+      "stems": [
+        {
+          "path": "Fear, And Loathing In Las Vegas - Let Me Hear (Ghostbyob)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 0,
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ],
+      "warnings": [
+        "Mixed audio: guitar cannot be muted independently"
+      ]
     },
     {
       "id": "e4712851ea8420f8",
@@ -240,6 +302,161 @@
         "HOPO/tap modifiers use direct-key controls",
         "10 open notes preserved in chart data but excluded from current five-color gameplay",
         "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "cb8d2ee760f448e3",
+      "title": "A Match into Water",
+      "artist": "Pierce the Veil",
+      "album": "Collide with the Sky",
+      "charter": "Hoph2o",
+      "genre": "Emo",
+      "year": "2012",
+      "rating": 3,
+      "preview": "Pierce the Veil - A Match into Water (Hoph2o)/guitar.opus",
+      "previewStart": 33,
+      "duration": 219.06,
+      "artwork": "Pierce the Veil - A Match into Water (Hoph2o)/album.jpg",
+      "stems": [
+        {
+          "path": "Pierce the Veil - A Match into Water (Hoph2o)/guitar.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 0,
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ],
+      "warnings": [
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "07a60ba44d125999",
+      "title": "King For A Day",
+      "artist": "Pierce The Veil",
+      "album": "Collide With The Sky",
+      "charter": "CamLikesCow",
+      "genre": "Post-Hardcore",
+      "year": "2012",
+      "rating": 3,
+      "preview": "Pierce The Veil - King For A Day (CamLikesCow)/song.opus",
+      "previewStart": 75,
+      "duration": 238.328,
+      "artwork": "Pierce The Veil - King For A Day (CamLikesCow)/album.jpg",
+      "stems": [
+        {
+          "path": "Pierce The Veil - King For A Day (CamLikesCow)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 90,
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "90 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "f4837a467209a27c",
+      "title": "The Rumbling",
+      "artist": "SiM",
+      "album": "The Rumbling",
+      "charter": "HaloMillennium",
+      "genre": "Metal",
+      "year": "2022",
+      "rating": 2,
+      "preview": "SiM - The Rumbling (HaloMillennium)/song.opus",
+      "previewStart": 59.059,
+      "duration": 221.041,
+      "artwork": "SiM - The Rumbling (HaloMillennium)/album.jpg",
+      "stems": [
+        {
+          "path": "SiM - The Rumbling (HaloMillennium)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 0,
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ],
+      "warnings": [
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "f8fe5aa4660f6d2b",
+      "title": "The Rumbling (TV Size)",
+      "artist": "SiM",
+      "album": "The Rumbling (Single)",
+      "charter": "John Titor",
+      "genre": "Metal",
+      "year": "2022",
+      "rating": 1,
+      "preview": "SiM - The Rumbling (TV Size) (John Titor)/song.opus",
+      "previewStart": 57.8,
+      "duration": 91.499,
+      "artwork": "SiM - The Rumbling (TV Size) (John Titor)/album.jpg",
+      "stems": [
+        {
+          "path": "SiM - The Rumbling (TV Size) (John Titor)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 42,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "42 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "b5c371ce1c4cb893",
+      "title": "FREEDOM DiVE",
+      "artist": "xi",
+      "album": "FREEDOM DiVE",
+      "charter": "Mintorment",
+      "genre": "Happy Hardcore",
+      "year": "2011",
+      "rating": 6,
+      "preview": "xi - FREEDOM DiVE (Mintorment)/song.opus",
+      "previewStart": 94,
+      "duration": 144.722,
+      "artwork": "xi - FREEDOM DiVE (Mintorment)/album.jpg",
+      "stems": [
+        {
+          "path": "xi - FREEDOM DiVE (Mintorment)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 8,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "8 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently",
+        "Background video found; playback is not implemented yet"
       ]
     }
   ],
