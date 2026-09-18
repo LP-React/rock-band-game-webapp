@@ -40,3 +40,49 @@
 @media(max-height:650px) and (min-width:761px) { .record-logo { font-size:56px; margin:10px 0; letter-spacing:-4px; }.record-overline,.record-play { font-size:7px; letter-spacing:1px; } }
 @media(max-width:760px) { .record-logo { font-size:60px; margin:12px 0; letter-spacing:-4px; }.record-overline,.record-play { font-size:7px; letter-spacing:.8px; } }
 @media(prefers-reduced-motion:reduce) { .menu-backdrop { animation:none; }.hero-record,.menu-ribbon,.song-row { transition:none; } }
+
+/* Album-led catalog detail; list geometry and song palettes stay unchanged. */
+.catalog-screen .menu-header button,.catalog-screen .song-search { font-size:14px; }
+.catalog-screen .eyebrow,.catalog-screen .list-columns { font-size:11px; }
+.catalog-screen .song-search input { font-size:15px; }
+.catalog-screen .artist-divider { font-size:13px; }
+.catalog-screen .artist-divider span:last-child { font-size:11px; }
+.catalog-screen .row-copy>span,.catalog-screen .song-row time { font-size:13px; }
+.catalog-screen .row-copy strong { font-size:19px; line-height:1.25; }
+.catalog-screen .row-copy small { font-size:12px; line-height:1.4; }
+.catalog-screen .menu-footer { font-size:13px; }
+.catalog-screen .song-detail { display:flex; flex-direction:column; overflow:hidden; padding-right:16px; }
+.song-detail-content { flex:1; min-height:0; overflow:auto; scrollbar-width:thin; scrollbar-color:color-mix(in srgb,var(--accent) 45%,transparent) transparent; padding-right:12px; }
+.catalog-screen .album-cover { width:clamp(160px,15vw,220px); height:auto; aspect-ratio:1; border-radius:8px; }
+.catalog-screen .detail-title { padding:14px 0 12px; }
+.catalog-screen .detail-title h2 { font-size:clamp(27px,2.5vw,38px); line-height:1.12; letter-spacing:-.6px; }
+.catalog-screen .detail-title .song-artist { margin:8px 0 0; font-size:18px; font-weight:500; }
+.catalog-screen .song-metadata { display:block; margin:0 0 12px; border-top:1px solid #fff2; }
+.catalog-screen .song-metadata>div { display:grid; grid-template-columns:125px minmax(0,1fr); gap:12px; align-items:baseline; padding:7px 0; border-bottom:1px solid #ffffff10; }
+.catalog-screen .song-metadata dt { margin:0; font-size:11px; letter-spacing:.7px; color:#bfb3c2; }
+.catalog-screen .song-metadata dd { font-size:14px; line-height:1.45; color:#f3edf4; }
+.catalog-screen .preview-player { margin:12px 0; }
+.catalog-screen .preview-player button,.catalog-screen .difficulty-picker button { font-size:14px; }
+.catalog-screen .preview-player span,.catalog-screen .difficulty-picker>span { font-size:11px; letter-spacing:1px; }
+.catalog-screen .preview-player small,.catalog-screen .compatibility-note,.catalog-screen .song-description { font-size:13px; }
+.catalog-screen .difficulty-picker>div { margin-top:8px; }
+.catalog-screen .catalog-play { position:static; flex-shrink:0; font-size:18px; margin-top:14px; }
+.catalog-screen .catalog-play:hover:not(:disabled) { background:var(--accent); filter:brightness(1.15); }
+@media(max-height:760px) and (min-width:761px) {
+  .song-detail-heading { display:grid; grid-template-columns:150px minmax(0,1fr); align-items:end; gap:16px; margin-bottom:16px; }
+  .catalog-screen .album-cover { width:150px; }
+  .catalog-screen .detail-title { padding:0; }
+  .catalog-screen .detail-title h2 { font-size:27px; }
+  .catalog-screen .song-metadata { display:grid; grid-template-columns:1fr 1fr; gap:0 18px; }
+  .catalog-screen .song-metadata>div { display:block; }
+  .catalog-screen .song-metadata dt { margin-bottom:4px; }
+}
+@media(max-width:760px) {
+  .catalog-screen .row-copy strong { font-size:16px; }
+  .catalog-screen .row-copy>span,.catalog-screen .row-copy small,.catalog-screen .song-row time { font-size:12px; }
+  .catalog-screen .list-columns { font-size:10px; letter-spacing:1px; }
+  .catalog-screen .album-cover { width:180px; }
+  .catalog-screen .song-detail { padding-right:0; }
+  .song-detail-content { overflow:visible; padding-right:0; }
+  .catalog-screen .song-metadata>div { grid-template-columns:105px minmax(0,1fr); gap:10px; }
+}
