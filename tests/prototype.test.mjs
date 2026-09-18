@@ -285,3 +285,21 @@ test('preparation gates playback and cancellation cannot start a late song', asy
   assert.equal(game.active, false)
   assert.equal(game.sources.length, 0)
 })
+
+test('finished attempts report a chord once, preserve maximum combo and reset on restart', async () => {
+  const results = [], game = new Prototype(canvas(), () => {}, result => results.push(result))
+  await game.start(.5)
+  game.notes = [{ time: 1, lanes: [0, 2], durations: [0, 0] }, { time: 1.5, lanes: [1], durations: [0] }]
+  game.duration = 2
+  game.audio.currentTime = game.started + 1
+  press(game, 'KeyA'); assert.equal(game.stats.hits, 0)
+  press(game, 'KeyD'); assert.equal(game.stats.hits, 1)
+  game.audio.currentTime = game.started + 1.5; press(game, 'KeyS')
+  game.audio.currentTime = game.started + 2; game.render(); game.render()
+  assert.equal(results.length, 1)
+  assert.equal(results[0].completed, true); assert.equal(results[0].grade, 'SS')
+  assert.equal(results[0].hits, 2); assert.equal(results[0].maxCombo, 2); assert.equal(results[0].score, 150)
+  await game.start(.5)
+  assert.equal(game.stats.hits, 0); assert.equal(game.stats.maxCombo, 0)
+  game.destroy()
+})

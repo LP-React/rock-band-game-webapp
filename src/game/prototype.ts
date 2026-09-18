@@ -1,3 +1,5 @@
+import { AttemptStats } from './results'
+import type { GameResult } from './results'
 import { lowerBound, upperBound, noteTime } from './time-window'
 import { chart, DURATION, HIT_WINDOW } from './chart'
 
@@ -39,6 +41,7 @@ export class Prototype {
   private theme?: SongTheme
   private displayedScore = 0
   private lastRender = 0
+  private stats = new AttemptStats()
   private score = 0
   private streak = 0
   private frame = 0
@@ -47,7 +50,7 @@ export class Prototype {
   private reducedMotion = typeof matchMedia !== 'undefined' ? matchMedia('(prefers-reduced-motion: reduce)') : undefined
   private canvas: HTMLCanvasElement
   private notify: (message: string, active: boolean, paused?: boolean) => void
-  constructor(canvas: HTMLCanvasElement, notify: (message: string, active: boolean, paused?: boolean) => void) {
+  constructor(canvas: HTMLCanvasElement, notify: (message: string, active: boolean, paused?: boolean) => void, private onResult?: (result: GameResult) => void) {
     this.canvas = canvas
     this.notify = notify
     this.ctx = canvas.getContext('2d')!
@@ -87,7 +90,7 @@ export class Prototype {
       await this.audio.resume()
       if (!this.active || generation !== this.generation || !this.paused) return
       for (const sustain of [...this.mechanics.sustains]) {
-        if (!this.held.has(sustain.lane) && this.mechanics.release(sustain.lane, this.offset)) { this.streak = 0; this.gain(0) }
+        if (!this.held.has(sustain.lane) && this.mechanics.release(sustain.lane, this.offset)) { this.stats.sustainBreaks++; this.streak = 0; this.gain(0) }
       }
       this.playSources(this.offset)
       this.paused = false
@@ -102,7 +105,7 @@ export class Prototype {
     this.notes = notes; this.beats = song.beats; this.duration = song.duration
     this.phrases = song.boostByDifficulty?.[difficulty] ?? song.boostPhrases ?? []; this.mechanics = new Mechanics()
     this.judged.clear(); this.pressed.clear(); this.flashes.fill(0)
-    this.expiredUntil = 0; this.score = 0; this.displayedScore = 0; this.streak = 0
+    this.stats = new AttemptStats(); this.expiredUntil = 0; this.score = 0; this.displayedScore = 0; this.streak = 0
     this.notify('Listo para tocar', false)
   }
   async start(volume: number, song?: Song, difficulty: Difficulty = 'easy', preparation?: { onProgress?: (message: string) => void; beforeStart?: () => Promise<void> }) {
@@ -143,7 +146,7 @@ export class Prototype {
     this.offset = 0; this.paused = false
     this.playSources(0)
     this.judged.clear(); this.pressed.clear(); this.held.clear(); this.flashes.fill(0)
-    this.expiredUntil = 0; this.score = 0; this.displayedScore = 0; this.streak = 0; this.active = true
+    this.stats = new AttemptStats(); this.expiredUntil = 0; this.score = 0; this.displayedScore = 0; this.streak = 0; this.active = true
     this.canvas.focus({ preventScroll: true })
     this.notify(`Prepárate · Pulsa ${this.settings.keys.map(keyLabel).join('/')} al llegar a la línea`, true)
   }
@@ -168,7 +171,7 @@ export class Prototype {
   private gain(value: number) {
     if (this.audio && this.guitar) this.guitar.gain.setTargetAtTime(value, this.audio.currentTime, 0.015)
   }
-  private miss(time = this.position()) { this.streak = 0; this.mechanics.miss(time); this.gain(0); this.notify(this.reactiveGuitar ? 'Fallo · Guitarra silenciada' : 'Fallo · Racha reiniciada', true) }
+  private miss(time = this.position(), kind: 'missed' | 'wrongPresses' = 'wrongPresses') { this.stats[kind]++; this.streak = 0; this.mechanics.miss(time); this.gain(0); this.notify(this.reactiveGuitar ? 'Fallo · Guitarra silenciada' : 'Fallo · Racha reiniciada', true) }
   private keydown = (event: KeyboardEvent) => {
     if (document.querySelector?.('dialog[open]')) return
     if (event.code === 'Escape' && this.active && !event.repeat) { event.preventDefault(); void this.togglePause(); return }
@@ -201,6 +204,7 @@ export class Prototype {
     this.judged.add(index)
     this.pressed.delete(index)
     this.streak++
+    this.stats.hit(this.streak)
     this.mechanics.hit(index)
     this.score += 50 * this.notes[index].lanes.length * this.multiplier()
     this.notes[index].lanes.forEach(laneIndex => { this.flashes[laneIndex] = performance.now() })
@@ -211,7 +215,7 @@ export class Prototype {
     const lane = this.settings.keys.indexOf(event.code), time = this.position()
     if (this.active && !this.paused) {
       this.score += this.mechanics.update(time, this.notes, this.phrases, Math.min(4, 1 + Math.floor(this.streak / 10)))
-      if (this.mechanics.release(lane, time)) { this.streak = 0; this.gain(0); this.notify('Sostenido soltado antes de tiempo', true) }
+      if (this.mechanics.release(lane, time)) { this.stats.sustainBreaks++; this.streak = 0; this.gain(0); this.notify('Sostenido soltado antes de tiempo', true) }
     }
     this.held.delete(lane)
   }
@@ -221,7 +225,7 @@ export class Prototype {
   private expire(time: number) {
     while (this.expiredUntil < this.notes.length && time > this.notes[this.expiredUntil].time + HIT_WINDOW) {
       const index = this.expiredUntil++, note = this.notes[index]
-      if (!this.judged.has(index)) { this.judged.add(index); this.pressed.delete(index); this.mechanics.cancelGroup(index); this.miss(note.time) }
+      if (!this.judged.has(index)) { this.judged.add(index); this.pressed.delete(index); this.mechanics.cancelGroup(index); this.miss(note.time, 'missed') }
     }
   }
   private render = () => {
@@ -234,8 +238,8 @@ export class Prototype {
     if (!this.paused) this.displayedScore += (this.score - this.displayedScore) * (reduced ? 1 : 1 - Math.exp(-elapsed / 85))
     if (Math.abs(this.score - this.displayedScore) < 1) this.displayedScore = this.score
     drawHighway({ theme: this.theme, canvas: this.canvas, ctx: this.ctx, time, active: this.active, held: this.held, judged: this.judged, pressed: this.pressed, flashes: this.flashes, score: Math.round(this.displayedScore), streak: this.streak, multiplier: this.multiplier(), duration: this.duration, notes: this.notes, beats: this.beats, mechanics: this.mechanics, settings: this.settings, phrases: this.phrases })
-    if (this.active && this.mechanics.health <= 0) { this.stop(false); this.notify(`Fin de partida · ${this.score} puntos`, false) }
-    if (this.active && time >= this.duration) { this.stop(false); this.notify(`Canción terminada · ${this.score} puntos`, false) }
+    if (this.active && this.mechanics.health <= 0) { this.onResult?.(this.stats.finish(this.score, this.notes.length, false)); this.stop(false); this.notify(`Fin de partida · ${this.score} puntos`, false) }
+    if (this.active && time >= this.duration) { this.onResult?.(this.stats.finish(this.score, this.notes.length, true)); this.stop(false); this.notify(`Canción terminada · ${this.score} puntos`, false) }
     this.frame = requestAnimationFrame(this.render)
   }
   destroy() {

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { themeStyle } from '../songs/presentation'
+import { ResultsScreen } from './ResultsScreen'
+import { saveResult } from '../game/results'
+import type { GameResult } from '../game/results'
 import { GameLoader } from './GameLoader'
 import { prepareImage, countdown } from '../game/preparation'
 import { PauseMenu } from './PauseMenu'
@@ -13,6 +16,8 @@ import { difficultyLabels } from '../songs/catalog'
 export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFullscreen }: { song: Song; difficulty: Difficulty; settings: Settings; onConfig: () => void; onExit: () => void; onFullscreen: () => void }) {
   const canvas = useRef<HTMLCanvasElement>(null), engine = useRef<Prototype | null>(null), initial = useRef(settings)
   const preparation = useRef<AbortController | null>(null)
+  const [result, setResult] = useState<GameResult | null>(null)
+  const [saved, setSaved] = useState(false)
   const [step, setStep] = useState<number | null>(null)
   const [phase, setPhase] = useState('Descargando audio…')
   const [status, setStatus] = useState('Cargando audio…'), [running, setRunning] = useState(false), [paused, setPaused] = useState(false), [loading, setLoading] = useState(true), [error, setError] = useState('')
@@ -21,7 +26,7 @@ export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFul
     const controller = new AbortController(); preparation.current = controller
     const background = prepareImage(song.background ?? song.artwork, controller.signal).catch(() => undefined)
     let lastStatus = 0
-    const game = new Prototype(canvas.current!, (message, active, paused = false) => { if (!cancelled) { const now = performance.now(); if (!active || paused || now - lastStatus >= 200) { setStatus(message); lastStatus = now } setRunning(active); setPaused(paused) } })
+    const game = new Prototype(canvas.current!, (message, active, paused = false) => { if (!cancelled) { const now = performance.now(); if (!active || paused || now - lastStatus >= 200) { setStatus(message); lastStatus = now } setRunning(active); setPaused(paused) } }, value => { if (!cancelled) { setResult(value); setSaved(saveResult(song.id, difficulty, value)) } })
     engine.current = game
     game.setSettings(initial.current); game.configure(song, difficulty)
     void game.start(initial.current.volume / 100, song, difficulty, { onProgress: message => { if (!cancelled) setPhase(message) }, beforeStart: async () => { await background; await countdown(controller.signal, value => { if (!cancelled) setStep(value) }) } }).catch(error => { if (!cancelled) setError(error.message) }).finally(() => { if (!cancelled) setLoading(false) })
@@ -29,7 +34,7 @@ export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFul
   }, [song, difficulty])
   useEffect(() => { engine.current?.setSettings(settings) }, [settings])
   async function restart() {
-    setError(''); setLoading(true); setStep(null)
+    setResult(null); setError(''); setLoading(true); setStep(null)
     preparation.current?.abort()
     const controller = new AbortController(); preparation.current = controller
     try { await engine.current?.start(settings.volume / 100, song, difficulty, { onProgress: setPhase, beforeStart: () => countdown(controller.signal, setStep) }) }
@@ -44,7 +49,8 @@ export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFul
     <section className="stage" aria-label="Juego de guitarra"><canvas ref={canvas} tabIndex={paused ? -1 : 0} aria-label={`Cinco carriles: ${settings.keys.map(keyLabel).join(', ')}. Espacio activa boost. Escape pausa.`} /><div className="stage-status" aria-live="polite">{status}</div>
       {paused && <PauseMenu song={song} onResume={() => void engine.current?.togglePause()} onRestart={() => void restart()} onConfig={onConfig} onExit={onExit} />}
       {loading && <GameLoader song={song} difficulty={difficulty} message={phase} step={step} onBack={onExit} />}
-      {!running && !loading && <div className="start-overlay"><img src={song.artwork} alt={`Portada de ${song.album}`} /><h1>{song.title}</h1><p>{difficultyLabels[difficulty]} · {status}</p>{error && <p role="alert">{error}</p>}<button className="game-primary" disabled={loading} onClick={restart}>{loading ? 'Cargando audio…' : 'Volver a tocar'}</button><button disabled={loading} onClick={onExit}>Volver al catálogo</button></div>}
+      {result && !loading && <ResultsScreen song={song} difficulty={difficulty} result={result} saved={saved} onRestart={() => void restart()} onExit={onExit} />}
+      {!running && !loading && !result && <div className="start-overlay"><img src={song.artwork} alt={`Portada de ${song.album}`} /><h1>{song.title}</h1><p>{difficultyLabels[difficulty]} · {status}</p>{error && <p role="alert">{error}</p>}<button className="game-primary" disabled={loading} onClick={restart}>{loading ? 'Cargando audio…' : 'Volver a tocar'}</button><button disabled={loading} onClick={onExit}>Volver al catálogo</button></div>}
     </section>
   </main>
 }
