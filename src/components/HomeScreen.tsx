@@ -7,7 +7,7 @@ import { themeStyle } from '../songs/presentation'
 import { HomeMusic } from './HomeMusic'
 import { HowToPlay } from './HowToPlay'
 
-export function HomeScreen({ settings, onPlay, onConfig }: { settings: Settings; onPlay: () => void; onConfig: () => void }) {
+export function HomeScreen({ settings, onVolumeChange, onPlay, onConfig }: { settings: Settings; onVolumeChange: (volume: number) => void; onPlay: () => void; onConfig: () => void }) {
   const spectrum = useRef<HTMLCanvasElement>(null)
   const [modes, setModes] = useState(false), [help, setHelp] = useState(false)
   const [musicIndex, setMusicIndex] = useState(() => Math.max(0, songs.findIndex(song => song.reactiveGuitar)))
@@ -17,7 +17,7 @@ export function HomeScreen({ settings, onPlay, onConfig }: { settings: Settings;
     <h1 className="sr-only">Riff Lab · Juego de guitarra</h1>
     <img key={song.id} className="menu-backdrop" src={song.background ?? song.artwork} alt="" aria-hidden="true" />
     <div className="stage-lines" aria-hidden="true" />
-    <header className="menu-header"><span className="brand">RIFF<span> / LAB</span></span><HomeMusic volume={settings.volume} canvas={spectrum} index={musicIndex} onSongChange={setMusicIndex} /></header>
+    <header className="menu-header"><span className="brand">RIFF<span> / LAB</span></span><HomeMusic volume={settings.volume} onVolumeChange={onVolumeChange} canvas={spectrum} index={musicIndex} onSongChange={setMusicIndex} /></header>
     <section className="home-arena" aria-label="Menú principal">
       <div className="record-wrap"><div className="record-stage"><canvas ref={spectrum} className="record-spectrum" width={600} height={600} aria-hidden="true" /><button className="hero-record" aria-label="Elegir modo de juego" onClick={() => setModes(true)}><span className="record-label"><strong className="record-logo">RIFF<br /><em>LAB</em></strong></span></button></div></div>
       <nav className="home-navigation" aria-label="Opciones del juego">

@@ -106,11 +106,17 @@
 .home-music-copy span { font-size:11px; color:#c8bcca; }
 .home-music-controls { display:flex; gap:4px; }
 .home-screen .home-music-controls button { padding:7px 10px; font-size:16px; }
-.home-player-actions { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.home-player-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .home-screen .home-music-controls { background:#ffffff0b; border:1px solid #fff2; padding:3px; border-radius:24px; align-items:center; gap:1px; }
 .home-screen .home-music-controls button { background:transparent; border:0; padding:6px 8px; font-size:13px; border-radius:50%; }
 .home-screen .home-music-controls .music-toggle { background:#fff1; width:32px; height:32px; }
-.home-screen .music-sound { background:transparent; border:0; padding:3px 5px; font-size:11px; color:var(--accent); white-space:nowrap; }
+.home-volume { position:relative; }
+.home-screen .music-volume-toggle { display:grid; place-items:center; width:34px; height:34px; padding:0; background:transparent; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); color:var(--accent); border-radius:50%; }
+.home-screen .music-volume-toggle[aria-pressed=false] { color:#c8bcca; }
+.home-volume-panel { position:absolute; top:100%; right:0; z-index:4; width:180px; padding:16px 12px 12px; visibility:hidden; opacity:0; }
+.home-volume:hover .home-volume-panel,.home-volume:focus-within .home-volume-panel { visibility:visible; opacity:1; }
+.home-volume-panel label { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; padding:12px; background:var(--panel); border:1px solid color-mix(in srgb,var(--accent) 40%,transparent); border-radius:10px; box-shadow:0 8px 24px #0006; font-size:12px; }
+.home-volume-panel input { width:100%; margin:0; accent-color:var(--accent); cursor:pointer; }
 .home-screen .menu-header { position:relative; }
 .home-screen .home-music { width:min(430px,36vw); }
 .home-screen .home-sound-prompt { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:3; display:flex; align-items:center; gap:7px; padding:8px 14px; background:var(--secondary); color:var(--on-accent); border:1px solid var(--accent); border-radius:20px; font-size:13px; white-space:nowrap; }

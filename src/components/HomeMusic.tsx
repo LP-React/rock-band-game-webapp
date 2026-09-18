@@ -4,7 +4,7 @@ import { songs } from '../songs/catalog'
 import { menuLevels } from '../game/menu-audio'
 import { fallbackTheme } from '../songs/presentation'
 
-export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: number; canvas: RefObject<HTMLCanvasElement | null>; index: number; onSongChange: (index: number) => void }) {
+export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange }: { volume: number; onVolumeChange: (volume: number) => void; canvas: RefObject<HTMLCanvasElement | null>; index: number; onSongChange: (index: number) => void }) {
   const [playing, setPlaying] = useState(true), [error, setError] = useState('')
   const [muted, setMuted] = useState(true)
   const [autoStart, setAutoStart] = useState(true)
@@ -135,6 +135,14 @@ export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: num
     {muted && <button className="home-sound-prompt" onClick={() => void play(true)}><span aria-hidden="true">♫</span> Activar sonido</button>}
     <img src={song.artwork} alt="" />
     <div className="home-music-copy"><small>{playing ? muted ? 'REPRODUCIENDO · SIN SONIDO' : 'SONANDO AHORA' : 'EN PAUSA'}</small><strong>{song.title}</strong><span>{song.artist}</span>{error && <span role="status">{error}</span>}</div>
-    <div className="home-player-actions"><div className="home-music-controls"><button aria-label="Canción anterior" onClick={() => change(-1)}>⏮</button><button className="music-toggle" aria-label={playing ? 'Pausar música' : 'Reproducir música'} onClick={() => { if (playing) pause(); else void play() }}>{playing ? 'Ⅱ' : '▶'}</button><button aria-label="Siguiente canción" onClick={() => change(1)}>⏭</button></div>{!muted && <button className="music-sound" aria-label="Silenciar música" onClick={() => { audio.current!.muted = true; setMuted(true) }}>Silenciar</button>}</div>
+    <div className="home-player-actions">
+      <div className="home-music-controls"><button aria-label="Canción anterior" onClick={() => change(-1)}>⏮</button><button className="music-toggle" aria-label={playing ? 'Pausar música' : 'Reproducir música'} onClick={() => { if (playing) pause(); else void play() }}>{playing ? 'Ⅱ' : '▶'}</button><button aria-label="Siguiente canción" onClick={() => change(1)}>⏭</button></div>
+      <div className="home-volume">
+        <button className="music-volume-toggle" aria-label={muted ? 'Activar sonido' : 'Silenciar música'} title={muted ? 'Activar sonido' : 'Silenciar música'} aria-pressed={!muted} onClick={() => { if (muted) void play(true); else { audio.current!.muted = true; setMuted(true) } }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4Z" />{muted || volume === 0 ? <path d="m16 9 6 6m0-6-6 6" /> : <><path d="M15 8a6 6 0 0 1 0 8" /><path d="M18 5a10 10 0 0 1 0 14" /></>}</svg>
+        </button>
+        <div className="home-volume-panel"><label>Volumen <span>{volume}%</span><input type="range" min="0" max="100" value={volume} aria-label="Volumen de la música" onChange={event => onVolumeChange(Number(event.target.value))} /></label></div>
+      </div>
+    </div>
   </div>
 }
