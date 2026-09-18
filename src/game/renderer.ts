@@ -1,9 +1,12 @@
+import { lowerBound, upperBound, noteTime, beatTime } from './time-window'
 import type { ChartNote } from './chart'
 import type { Mechanics, BoostPhrase } from './mechanics'
 import { keyLabel } from './settings'
 import type { Settings } from './settings'
 import type { SongTheme } from '../songs/presentation'
 interface RenderState { theme?: SongTheme; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; time: number; active: boolean; held: Set<number>; judged: Set<number>; pressed: Map<number, Set<number>>; flashes: number[]; score: number; streak: number; multiplier: number; duration: number; notes: ChartNote[]; beats: number[]; mechanics: Mechanics; settings: Settings; phrases: BoostPhrase[] }
+const backgrounds = new WeakMap<CanvasRenderingContext2D, { key: string; ambient: CanvasGradient; board: CanvasGradient; entrance: CanvasGradient }>()
+const stars = new WeakMap<ChartNote[], { phrases: BoostPhrase[]; marked: boolean[] }>()
 export function drawHighway(state: RenderState) {
     const accent = state.theme?.accent ?? '#c5bedc', selection = state.theme?.selection ?? '#eee9f8', panel = state.theme?.panel ?? '#353046'
     const colors = state.mechanics.boost ? Array(5).fill(accent) as string[] : ['#72eb48', '#ff4659', '#ffe14d', '#45b9ff', '#ff9d38']
@@ -13,9 +16,18 @@ export function drawHighway(state: RenderState) {
     if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr) }
     c.setTransform(dpr, 0, 0, dpr, 0, 0)
     c.clearRect(0, 0, w, h)
-    const ambient = c.createRadialGradient(w * .5, h * .3, 10, w * .5, h * .5, w * .6)
-    ambient.addColorStop(0, state.mechanics.boost ? accent + '70' : panel); ambient.addColorStop(1, '#07090dd9')
-    c.fillStyle = ambient; c.fillRect(0, 0, w, h)
+    const key = `${w}:${h}:${dpr}:${accent}:${panel}:${state.mechanics.boost}`
+    let cached = backgrounds.get(c)
+    if (cached?.key !== key) {
+      const ambient = c.createRadialGradient(w * .5, h * .3, 10, w * .5, h * .5, w * .6)
+      ambient.addColorStop(0, state.mechanics.boost ? accent + '70' : panel); ambient.addColorStop(1, '#07090dd9')
+      const board = c.createLinearGradient(0, h * .08, 0, h * 1.04); board.addColorStop(0, '#111218'); board.addColorStop(1, '#24252d')
+      const entrance = c.createLinearGradient(0, h * .08, 0, h * .28); entrance.addColorStop(0, '#101018'); entrance.addColorStop(1, '#07090d00')
+      cached = { key, ambient, board, entrance }; backgrounds.set(c, cached)
+    }
+    let phrases = stars.get(state.notes)
+    if (phrases?.phrases !== state.phrases) { phrases = { phrases: state.phrases, marked: state.notes.map(note => state.phrases.some(phrase => note.time >= phrase.start && note.time < phrase.end)) }; stars.set(state.notes, phrases) }
+    c.fillStyle = cached.ambient; c.fillRect(0, 0, w, h)
     const near = Math.min(w * .70, h * 1.12), top = h * .08, bottom = h * 1.04, hit = .94
     const point = (lane: number, depth: number) => {
       const scale = .25 / (1 - .75 * depth)
@@ -23,8 +35,7 @@ export function drawHighway(state: RenderState) {
     }
     const path = (points: { x: number; y: number }[]) => { c.beginPath(); points.forEach((p, i) => { if (i) c.lineTo(p.x, p.y); else c.moveTo(p.x, p.y) }); c.closePath() }
     path([point(0, 0), point(5, 0), point(5, 1), point(0, 1)])
-    const board = c.createLinearGradient(0, top, 0, bottom); board.addColorStop(0, '#111218'); board.addColorStop(1, '#24252d')
-    c.fillStyle = board; c.fill()
+    c.fillStyle = cached.board; c.fill()
     if (state.mechanics.boost) { c.shadowColor = accent; c.shadowBlur = 20 }
     for (let lane = 0; lane <= 5; lane++) {
       const a = point(lane, 0), b = point(lane, 1)
@@ -39,7 +50,8 @@ export function drawHighway(state: RenderState) {
     }
     const time = state.time
     const previewTime = state.active ? time : 1.1
-    for (let beat = 0; beat < state.beats.length; beat++) {
+    const firstBeat = lowerBound(state.beats, previewTime - (1 - hit) * travel, beatTime), lastBeat = upperBound(state.beats, previewTime + hit * travel, beatTime)
+    for (let beat = firstBeat; beat < lastBeat; beat++) {
       const depth = hit - (state.beats[beat] - previewTime) / travel
       if (depth < 0 || depth > 1) continue
       const a = point(0, depth), b = point(5, depth)
@@ -63,7 +75,7 @@ export function drawHighway(state: RenderState) {
       if (receptor && state.flashes[lane] > 0 && age < 400) {
         c.globalAlpha = 1 - age / 400
         const glow = c.createRadialGradient(p.x, p.y - 20, 0, p.x, p.y - 20, radius * 1.6)
-        glow.addColorStop(0, '#fff4c5'); glow.addColorStop(.3, state.mechanics.boost ? '#64e7ff' : '#ffba38'); glow.addColorStop(1, '#ff7c0000')
+        glow.addColorStop(0, '#fff4c5'); glow.addColorStop(.3, state.mechanics.boost ? accent : '#ffba38'); glow.addColorStop(1, '#ff7c0000')
         ellipse(p.x, p.y - 20, radius * 1.6, radius * 2, glow); c.globalAlpha = 1
         for (let spark = 0; spark < 12; spark++) {
           const angle = spark * 2.4, distance = age * .2
@@ -75,7 +87,8 @@ export function drawHighway(state: RenderState) {
     }
     const a = point(0, hit), b = point(5, hit)
     c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.strokeStyle = '#ffffff88'; c.lineWidth = 2; c.stroke()
-    for (let i = state.notes.length - 1; i >= 0; i--) {
+    const firstNote = lowerBound(state.notes, previewTime - (1 - hit) * travel, noteTime), lastNote = upperBound(state.notes, previewTime + hit * travel, noteTime)
+    for (let i = lastNote - 1; i >= firstNote; i--) {
       const depth = hit - (state.notes[i].time - previewTime) / travel
       if (depth >= 0 && depth <= 1 && (!state.active || !state.judged.has(i))) state.notes[i].lanes.forEach((lane, laneIndex) => {
         if (state.active && state.pressed.get(i)?.has(lane)) return
@@ -87,7 +100,7 @@ export function drawHighway(state: RenderState) {
           c.strokeStyle = colors[lane]; c.lineWidth = Math.max(2, start.width * .08); c.stroke()
         }
         disc(lane, depth)
-        if (state.phrases.some(phrase => state.notes[i].time >= phrase.start && state.notes[i].time < phrase.end)) {
+        if (phrases.marked[i]) {
           const p = point(lane + .5, depth)
           c.fillStyle = '#fff'; c.font = `bold ${Math.max(9, p.width * .32)}px Segoe UI`; c.textAlign = 'center'; c.fillText('★', p.x, p.y - p.width * .04)
         }
@@ -103,10 +116,8 @@ export function drawHighway(state: RenderState) {
       c.fillStyle = '#b6b7c3'; c.font = '11px Segoe UI'; c.textAlign = 'center'; c.fillText(keyLabel(state.settings.keys[lane]), p.x, p.y + p.width * .45)
     })
     // Fade the distant entrance, including rails and arriving notes, into the background.
-    const entrance = c.createLinearGradient(0, top, 0, top + h * .20)
-    entrance.addColorStop(0, '#101018'); entrance.addColorStop(1, '#07090d00')
     c.save(); path([point(0, 0), point(5, 0), point(5, 1), point(0, 1)]); c.clip()
-    c.fillStyle = entrance; c.fillRect(0, top - 1, w, h * .20 + 1); c.restore()
+    c.fillStyle = cached.entrance; c.fillRect(0, top - 1, w, h * .20 + 1); c.restore()
     const compact = w < 700
     const boardLeft = point(0, hit).x, boardRight = point(5, hit).x
     const hudX = compact ? 12 : Math.max(18, boardLeft - 210), hudY = h * (compact ? .38 : .62)

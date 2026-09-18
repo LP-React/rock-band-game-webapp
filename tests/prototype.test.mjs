@@ -258,3 +258,30 @@ test('audio loader accepts single mixes and stems of different lengths, reports 
     await assert.rejects(() => loadSongAudio({decodeAudioData: async () => {throw new Error()}}, {stems: [{url: 'bad', guitar: false}]}), /decodificar/)
   } finally { globalThis.fetch = original }
 })
+
+test('preparation gates playback and cancellation cannot start a late song', async () => {
+  const game = new Prototype(canvas(), () => {})
+  let ready, entered
+  const waiting = new Promise(resolve => { ready = resolve })
+  const prepared = new Promise(resolve => { entered = resolve })
+  const start = game.start(.5, undefined, 'easy', { beforeStart: () => { entered(); return waiting } })
+  await prepared
+  assert.equal(game.active, false)
+  assert.equal(game.sources.length, 0)
+  press(game, 'KeyA')
+  assert.equal(game.score, 0)
+  ready()
+  await start
+  assert.equal(game.active, true)
+  assert.equal(game.sources.length, 2)
+  let release, reached
+  const nextGate = new Promise(resolve => { release = resolve })
+  const nextEntered = new Promise(resolve => { reached = resolve })
+  const next = game.start(.5, undefined, 'easy', { beforeStart: () => { reached(); return nextGate } })
+  await nextEntered
+  game.destroy()
+  release()
+  await next
+  assert.equal(game.active, false)
+  assert.equal(game.sources.length, 0)
+})

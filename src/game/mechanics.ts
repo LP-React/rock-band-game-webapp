@@ -1,3 +1,4 @@
+import { lowerBound, noteTime } from './time-window'
 import type { ChartNote } from './chart'
 export interface BoostPhrase { start: number; end: number }
 export interface Sustain { lane: number; end: number; from: number; group?: number }
@@ -9,6 +10,9 @@ export class Mechanics {
   private success = new Set<number>()
   private failed = new Set<number>()
   private awarded = new Set<number>()
+  private preparedNotes?: ChartNote[]
+  private preparedPhrases?: BoostPhrase[]
+  private members: { start: number; end: number }[] = []
   private last = 0
   private tickRemainder = 0
   hit(index: number) { this.success.add(index); this.health = Math.min(1, this.health + .012) }
@@ -26,6 +30,10 @@ export class Mechanics {
   }
   activate() { if (this.boost || this.energy < .5) return false; this.boost = true; return true }
   update(time: number, notes: ChartNote[], phrases: BoostPhrase[], multiplier: number) {
+    if (notes !== this.preparedNotes || phrases !== this.preparedPhrases) {
+      this.preparedNotes = notes; this.preparedPhrases = phrases
+      this.members = phrases.map(phrase => ({ start: lowerBound(notes, phrase.start, noteTime), end: lowerBound(notes, phrase.end, noteTime) }))
+    }
     const delta = Math.max(0, time - this.last)
     const boostedFor = this.boost ? Math.min(delta, this.energy / .125) : 0
     for (const sustain of this.sustains) {
@@ -41,8 +49,10 @@ export class Mechanics {
     phrases.forEach((phrase, index) => {
       if (time <= phrase.end + .14 || this.awarded.has(index)) return
       this.awarded.add(index)
-      const members = notes.map((note, i) => ({ note, i })).filter(({ note }) => note.time >= phrase.start && note.time < phrase.end)
-      if (members.length && members.every(({ i }) => this.success.has(i)) && ![...this.failed].some(t => t >= phrase.start && t < phrase.end)) this.energy = Math.min(1, this.energy + .25)
+      const members = this.members[index]
+      let complete = members.end > members.start
+      for (let i = members.start; complete && i < members.end; i++) complete = this.success.has(i)
+      if (complete && ![...this.failed].some(t => t >= phrase.start && t < phrase.end)) this.energy = Math.min(1, this.energy + .25)
     })
     this.last = time
     return points

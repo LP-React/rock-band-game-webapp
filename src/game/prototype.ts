@@ -1,3 +1,4 @@
+import { lowerBound, upperBound, noteTime } from './time-window'
 import { chart, DURATION, HIT_WINDOW } from './chart'
 
 import { makeDemoAudio } from './demo-audio'
@@ -41,6 +42,9 @@ export class Prototype {
   private score = 0
   private streak = 0
   private frame = 0
+  private expiredUntil = 0
+  private loadController?: AbortController
+  private reducedMotion = typeof matchMedia !== 'undefined' ? matchMedia('(prefers-reduced-motion: reduce)') : undefined
   private canvas: HTMLCanvasElement
   private notify: (message: string, active: boolean, paused?: boolean) => void
   constructor(canvas: HTMLCanvasElement, notify: (message: string, active: boolean, paused?: boolean) => void) {
@@ -98,12 +102,13 @@ export class Prototype {
     this.notes = notes; this.beats = song.beats; this.duration = song.duration
     this.phrases = song.boostByDifficulty?.[difficulty] ?? song.boostPhrases ?? []; this.mechanics = new Mechanics()
     this.judged.clear(); this.pressed.clear(); this.flashes.fill(0)
-    this.score = 0; this.displayedScore = 0; this.streak = 0
+    this.expiredUntil = 0; this.score = 0; this.displayedScore = 0; this.streak = 0
     this.notify('Listo para tocar', false)
   }
-  async start(volume: number, song?: Song, difficulty: Difficulty = 'easy') {
+  async start(volume: number, song?: Song, difficulty: Difficulty = 'easy', preparation?: { onProgress?: (message: string) => void; beforeStart?: () => Promise<void> }) {
     this.stop(false)
     const generation = this.generation
+    const controller = new AbortController(); this.loadController = controller
     this.audio ??= new AudioContext()
     await this.audio.resume()
     if (this.destroyed || generation !== this.generation) return
@@ -118,7 +123,7 @@ export class Prototype {
     if (id !== this.songId) { this.buffers = undefined; this.songId = id }
     if (!this.buffers) {
       this.notify('Cargando audio y chart…', false)
-      const buffers = song ? await loadSongAudio(this.audio, song) : makeDemoAudio(this.audio)
+      const buffers = song ? await loadSongAudio(this.audio, song, controller.signal, preparation?.onProgress) : makeDemoAudio(this.audio)
       if (this.destroyed || generation !== this.generation) return
       this.buffers = buffers
     }
@@ -132,10 +137,13 @@ export class Prototype {
     this.setVolume(volume)
     this.guitar!.gain.cancelScheduledValues(this.audio.currentTime)
     this.guitar!.gain.setValueAtTime(1, this.audio.currentTime)
+    preparation?.onProgress?.('Preparando partida…')
+    await preparation?.beforeStart?.()
+    if (this.destroyed || generation !== this.generation) return
     this.offset = 0; this.paused = false
     this.playSources(0)
     this.judged.clear(); this.pressed.clear(); this.held.clear(); this.flashes.fill(0)
-    this.score = 0; this.displayedScore = 0; this.streak = 0; this.active = true
+    this.expiredUntil = 0; this.score = 0; this.displayedScore = 0; this.streak = 0; this.active = true
     this.canvas.focus({ preventScroll: true })
     this.notify(`Prepárate · Pulsa ${this.settings.keys.map(keyLabel).join('/')} al llegar a la línea`, true)
   }
@@ -150,6 +158,7 @@ export class Prototype {
     this.canvas.focus({ preventScroll: true })
   }
   stop(report = true) {
+    this.loadController?.abort()
     this.generation++
     this.active = false; this.paused = false; this.offset = 0; this.held.clear()
     this.mechanics.sustains = []
@@ -175,10 +184,12 @@ export class Prototype {
     this.score += this.mechanics.update(time, this.notes, this.phrases, Math.min(4, 1 + Math.floor(this.streak / 10)))
     this.expire(time)
     let index = -1, closest = Infinity
-    this.notes.forEach((note, i) => {
+    const first = lowerBound(this.notes, time - HIT_WINDOW, noteTime), last = upperBound(this.notes, time + HIT_WINDOW, noteTime)
+    for (let i = first; i < last; i++) {
+      const note = this.notes[i]
       const distance = Math.abs(note.time - time)
       if (!this.judged.has(i) && distance <= HIT_WINDOW && distance < closest && note.lanes.includes(lane) && !this.pressed.get(i)?.has(lane)) { index = i; closest = distance }
-    })
+    }
     if (index < 0) { this.miss(); return }
     const pressed = this.pressed.get(index) ?? new Set<number>()
     pressed.add(lane)
@@ -208,9 +219,10 @@ export class Prototype {
   private visibility = () => { if (document.hidden) this.blur() }
   private multiplier() { return Math.min(4, 1 + Math.floor(this.streak / 10)) * (this.mechanics.boost ? 2 : 1) }
   private expire(time: number) {
-    this.notes.forEach((note, index) => {
-      if (!this.judged.has(index) && time > note.time + HIT_WINDOW) { this.judged.add(index); this.pressed.delete(index); this.mechanics.cancelGroup(index); this.miss(note.time) }
-    })
+    while (this.expiredUntil < this.notes.length && time > this.notes[this.expiredUntil].time + HIT_WINDOW) {
+      const index = this.expiredUntil++, note = this.notes[index]
+      if (!this.judged.has(index)) { this.judged.add(index); this.pressed.delete(index); this.mechanics.cancelGroup(index); this.miss(note.time) }
+    }
   }
   private render = () => {
     const time = this.position()
@@ -218,7 +230,7 @@ export class Prototype {
     if (this.active && !this.paused) this.score += this.mechanics.update(time, this.notes, this.phrases, Math.min(4, 1 + Math.floor(this.streak / 10)))
     const now = performance.now(), elapsed = Math.min(100, now - this.lastRender)
     this.lastRender = now
-    const reduced = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduced = this.reducedMotion?.matches ?? false
     if (!this.paused) this.displayedScore += (this.score - this.displayedScore) * (reduced ? 1 : 1 - Math.exp(-elapsed / 85))
     if (Math.abs(this.score - this.displayedScore) < 1) this.displayedScore = this.score
     drawHighway({ theme: this.theme, canvas: this.canvas, ctx: this.ctx, time, active: this.active, held: this.held, judged: this.judged, pressed: this.pressed, flashes: this.flashes, score: Math.round(this.displayedScore), streak: this.streak, multiplier: this.multiplier(), duration: this.duration, notes: this.notes, beats: this.beats, mechanics: this.mechanics, settings: this.settings, phrases: this.phrases })
