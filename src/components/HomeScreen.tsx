@@ -7,7 +7,7 @@ import { themeStyle } from '../songs/presentation'
 import { HomeMusic } from './HomeMusic'
 import { HowToPlay } from './HowToPlay'
 
-export function HomeScreen({ settings, onVolumeChange, onPlay, onConfig }: { settings: Settings; onVolumeChange: (volume: number) => void; onPlay: () => void; onConfig: () => void }) {
+export function HomeScreen({ settings, onVolumeChange, onPlay, onConfig }: { settings: Settings; onVolumeChange: (volume: number) => void; onPlay: (songId: string) => void; onConfig: () => void }) {
   const spectrum = useRef<HTMLCanvasElement>(null)
   const [modes, setModes] = useState(false), [help, setHelp] = useState(false)
   const [musicIndex, setMusicIndex] = useState(() => Math.max(0, songs.findIndex(song => song.reactiveGuitar)))
@@ -22,7 +22,7 @@ export function HomeScreen({ settings, onVolumeChange, onPlay, onConfig }: { set
       <div className="record-wrap"><div className="record-stage"><canvas ref={spectrum} className="record-spectrum" width={600} height={600} aria-hidden="true" /><button className="hero-record" aria-label="Elegir modo de juego" onClick={() => setModes(true)}><span className="record-label"><strong className="record-logo">RIFF<br /><em>LAB</em></strong></span></button></div></div>
       <nav className="home-navigation" aria-label="Opciones del juego">
         {!modes && <div className="home-main-actions"><button className="menu-ribbon play-ribbon" aria-expanded={modes} aria-controls="play-modes" onClick={() => setModes(true)} autoFocus><strong>Jugar</strong><b aria-hidden="true">↗</b></button><button className="menu-ribbon config-ribbon" onClick={onConfig}><strong>Configuración</strong><b aria-hidden="true">⚙</b></button></div>}
-        {modes && <div id="play-modes" className="play-modes" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); closeModes() } }}><button className="mode-option" onClick={onPlay} autoFocus><span><strong>Jugar solo</strong><small>Elige tu canción</small></span><b aria-hidden="true">↗</b></button><button className="mode-option friends-mode" disabled><span><strong>Con amigos</strong><small>Próximamente</small></span><b aria-hidden="true">♬</b></button><button className="mode-back" onClick={closeModes}>← Volver</button></div>}
+        {modes && <div id="play-modes" className="play-modes" onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); closeModes() } }}><button className="mode-option" onClick={() => onPlay(song.id)} autoFocus><span><strong>Jugar solo</strong><small>Elige tu canción</small></span><b aria-hidden="true">↗</b></button><button className="mode-option friends-mode" disabled><span><strong>Con amigos</strong><small>Próximamente</small></span><b aria-hidden="true">♬</b></button><button className="mode-back" onClick={closeModes}>← Volver</button></div>}
       </nav>
     </section>
     <footer className="menu-footer home-footer">
