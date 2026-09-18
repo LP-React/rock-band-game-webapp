@@ -16,6 +16,8 @@ interface Session {
   select: (id: string) => void
   setDifficulty: (value: Difficulty) => void
   configure: () => void
+  menuVariant: 'arcade' | 'encore'
+  setMenuVariant: (value: 'arcade' | 'encore') => void
 }
 const SessionContext = createContext<Session | null>(null)
 export function useSession() {
@@ -27,6 +29,7 @@ export default function App({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(() => ({ ...defaults, keys: [...defaults.keys] }))
   const [ready, setReady] = useState(false), [config, setConfig] = useState(false)
   const [selected, setSelected] = useState(songs[0].id)
+  const [menuVariant, setMenuVariant] = useState<'arcade' | 'encore'>('arcade')
   const [difficulty, setDifficulty] = useState<Difficulty>(songs[0].difficulties[0])
   useEffect(() => {
     let cancelled = false
@@ -40,7 +43,7 @@ export default function App({ children }: { children: ReactNode }) {
     if (!entry) return
     setSelected(id); setDifficulty(entry.difficulties[0])
   }
-  return <SessionContext.Provider value={{ settings, setSettings, selected, difficulty, select, setDifficulty, configure: () => setConfig(true) }}>
+  return <SessionContext.Provider value={{ settings, setSettings, selected, difficulty, select, setDifficulty, menuVariant, setMenuVariant, configure: () => setConfig(true) }}>
     {children}
     {config && <SettingsPanel settings={settings} onSave={setSettings} onClose={() => setConfig(false)} />}
   </SessionContext.Provider>

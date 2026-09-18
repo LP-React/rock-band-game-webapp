@@ -1,5 +1,22 @@
+import type { CSSProperties } from 'react'
 import { keyLabel } from '../game/settings'
 import type { Settings } from '../game/settings'
+import { songs } from '../songs/catalog'
+import { useSession } from '../App'
+import { MenuVariant } from './MenuVariant'
+
 export function HomeScreen({ settings, count, onPlay, onConfig }: { settings: Settings; count: number; onPlay: () => void; onConfig: () => void }) {
-  return <main className="menu-screen home-screen"><header className="menu-header"><span className="brand">RIFF<span> / LAB</span></span><span>GUITARRA · CINCO COLORES</span></header><section className="home-content"><div className="home-copy"><p className="eyebrow">SUBE EL VOLUMEN</p><h1>Tu próxima<br /><em>racha empieza aquí.</em></h1><p className="home-description">Elige una canción. Sigue el ritmo. Toca las notas cuando lleguen a la línea y mantén las largas hasta el final.</p><div className="home-actions"><button className="primary" onClick={onPlay} autoFocus>Jugar <span>→</span></button><button onClick={onConfig}>Configuración</button></div><p className="library-count">{count} canciones en tu biblioteca · Guitarra principal</p></div><div className="home-controls"><div className="mini-highway" aria-hidden="true">{settings.keys.map((key, lane) => <div key={lane} style={{ '--lane-color': ['#72eb48', '#ff4659', '#ffe14d', '#45b9ff', '#ff9d38'][lane] } as React.CSSProperties}><i /><b>{keyLabel(key)}</b></div>)}</div><h2>Las manos en el teclado.</h2><p>Una tecla por color. Sin rasgueo adicional.</p><dl><div><dt>ESPACIO</dt><dd>Activa el boost con media barra de energía.</dd></div><div><dt>ESC</dt><dd>Pausa y continúa sin perder tu progreso.</dd></div><div><dt>↑ ↓ · ENTER</dt><dd>Recorre el catálogo y elige tu canción.</dd></div></dl></div></section><footer className="menu-footer"><span>ROCK. RITMO. RACHA.</span><span>Controles y volumen en Configuración</span></footer></main>
+  const { menuVariant } = useSession()
+  const artwork = songs.find(song => song.reactiveGuitar)?.artwork ?? songs[0].artwork
+  return <main className="menu-screen home-screen" data-variant={menuVariant}>
+    <h1 className="sr-only">Riff Lab · Juego de guitarra</h1>
+    <img className="menu-backdrop" src={artwork} alt="" aria-hidden="true" />
+    <div className="stage-lines" aria-hidden="true" />
+    <header className="menu-header"><span className="brand">RIFF<span> / LAB</span></span><MenuVariant /><span className="library-status"><i />{count} canciones · Solo</span></header>
+    <section className="home-arena" aria-label="Menú principal">
+      <div className="record-wrap"><span className="orbit-label">FIVE FRETS / ONE STAGE</span><button className="hero-record" aria-label="Jugar desde el disco" onClick={onPlay}><span className="record-label"><span className="record-overline">GUITAR RHYTHM GAME</span><strong className="record-logo">RIFF<br /><em>LAB</em></strong><span className="record-play">PULSA PARA JUGAR ↗</span></span></button><span className="record-caption">GUITARRA / TECLADO / ROCK</span></div>
+      <nav className="home-navigation" aria-label="Opciones del juego"><p className="menu-kicker">MAIN MENU <span>01 — SOLO</span></p><button className="menu-ribbon play-ribbon" onClick={onPlay} autoFocus><span className="ribbon-number">01</span><span><strong>Jugar</strong><small>Elige tu canción</small></span><b aria-hidden="true">↗</b></button><button className="menu-ribbon config-ribbon" onClick={onConfig}><span className="ribbon-number">02</span><span><strong>Configuración</strong><small>Teclas · Volumen · Velocidad</small></span><b aria-hidden="true">⚙</b></button><p className="home-hint">Toca al llegar a la línea.<br />Mantén las notas largas hasta el final.</p></nav>
+    </section>
+    <footer className="menu-footer home-footer"><div className="fret-guide">{settings.keys.map((key, lane) => <span key={lane} style={{ '--lane-color': ['#78e455', '#ff526b', '#ffdd57', '#58baff', '#ffa24f'][lane] } as CSSProperties}><kbd>{keyLabel(key)}</kbd><i /></span>)}<p>Cinco colores.<br />Sin rasgueo adicional.</p></div><div className="keyboard-guide"><span><kbd>ESPACIO</kbd> Boost</span><span><kbd>ESC</kbd> Pausa</span><span><kbd>ENTER</kbd> Seleccionar</span></div></footer>
+  </main>
 }
