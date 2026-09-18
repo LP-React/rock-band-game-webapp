@@ -267,7 +267,7 @@ export class Prototype {
     const reduced = this.reducedMotion?.matches ?? false
     if (!this.paused) this.displayedScore += (this.score - this.displayedScore) * (reduced ? 1 : 1 - Math.exp(-elapsed / 85))
     if (Math.abs(this.score - this.displayedScore) < 1) this.displayedScore = this.score
-    drawHighway({ preparing: this.preparingSince === undefined ? undefined : reduced ? 3 : (now - this.preparingSince) / 1000, theme: this.theme, canvas: this.canvas, ctx: this.ctx, time, active: this.active, held: this.held, judged: this.judged, pressed: this.pressed, flashes: this.flashes, score: Math.round(this.displayedScore), streak: this.streak, multiplier: this.multiplier(), duration: this.duration, notes: this.notes, beats: this.beats, mechanics: this.mechanics, settings: this.settings, phrases: this.phrases })
+    drawHighway({ reducedMotion: reduced, preparing: this.preparingSince === undefined ? undefined : reduced ? 3 : (now - this.preparingSince) / 1000, theme: this.theme, canvas: this.canvas, ctx: this.ctx, time, active: this.active, held: this.held, judged: this.judged, pressed: this.pressed, flashes: this.flashes, score: Math.round(this.displayedScore), streak: this.streak, multiplier: this.multiplier(), duration: this.duration, notes: this.notes, beats: this.beats, mechanics: this.mechanics, settings: this.settings, phrases: this.phrases })
     if (this.active && this.mechanics.health <= 0) this.finish(false)
     if (this.active && time >= this.duration) this.finish(true)
     this.frame = requestAnimationFrame(this.render)

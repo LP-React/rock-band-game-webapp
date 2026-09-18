@@ -49,15 +49,12 @@ dialog { color: #e9eef8; background: #151a25; border: 1px solid #485063; border-
 .game-shell .brand span { color: var(--accent); }
 .game-header { flex-shrink: 0; position: relative; z-index: 3; }
 .game-header .fullscreen-icon { padding: 9px; display: grid; place-items: center; }
-.game-track-strip { display: flex; align-items: center; gap: 14px; padding: 10px max(24px, 3.5vw); background: #100d1766; border-bottom: 1px solid #ffffff0b; color: #fff8f0; }
-.game-track-strip > img { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; }
-.game-track-strip > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.game-track-strip strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.game-track-strip span { font-size: 12px; color: var(--accent); }
-.game-track-strip .game-difficulty { margin-left: auto; white-space: nowrap; color: #fff8f09a; }
-.game-track-strip button { border-radius: 30px; background: #ffffff06; border-color: #ffffff20; white-space: nowrap; }
-.game-track-strip kbd { font-size: 10px; margin-left: 6px; }
-.game-shell .stage-status { top: 14px; left: max(24px, 3.5vw); font-size: 11px; color: #fff8f09a; }
+.stage-track { position: absolute; top: 28px; left: max(24px, calc(50% - 590px)); display: flex; align-items: center; gap: 16px; max-width: min(370px, 35vw); pointer-events: none; }
+.stage-track img { width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff30; box-shadow: 0 0 0 7px #100d1755, 0 8px 24px #0004; }
+.stage-track > div { min-width: 0; }
+.stage-track strong { display: block; font-size: 14px; line-height: 1.4; text-wrap: balance; }
+.stage-track span { display: block; margin-top: 5px; font-size: 11px; color: var(--accent); }
+@media(max-width:700px) { .stage-track { top: 18px; left: 16px; max-width: 65vw; gap: 12px; } .stage-track img { width: 40px; height: 40px; } .stage-track strong { font-size: 11px; } .stage-track span { font-size: 10px; } }
 .game-shell .start-overlay { background: #0c0915a8; backdrop-filter: blur(10px); overflow: auto; }
 .game-shell button.game-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 800; }
 .game-shell button.game-primary:hover { background: var(--accent); filter: brightness(1.08); }
@@ -80,7 +77,7 @@ dialog { color: #e9eef8; background: #151a25; border: 1px solid #485063; border-
 .pause-actions kbd, .pause-actions b { font-size: 12px; width: 26px; opacity: .7; }
 .pause-card small { display: block; margin-top: 22px; line-height: 1.6; color: #fff8f080; }
 @keyframes pause-arrive { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
-@media(max-width:700px) { .game-header { padding: 10px 14px; gap: 10px; } .game-header .brand { font-size: 17px; } .game-header button { font-size: 11px; padding: 8px 10px; } .game-track-strip { padding: 8px 14px; gap: 10px; } .game-track-strip strong { font-size: 12px; } .game-track-strip .game-difficulty { font-size: 10px; } .game-track-strip > img { display: none; } .game-track-strip button kbd { display: none; } .pause-track strong { font-size: 15px; } .pause-actions button { font-size: 15px; padding: 16px 20px; } .pause-actions button:nth-child(2) { margin-inline: 8px; } .pause-actions button:last-child { margin-inline: 16px; } }
+@media(max-width:700px) { .game-header { padding: 10px 14px; gap: 10px; } .game-header .brand { font-size: 17px; } .game-header button { font-size: 11px; padding: 8px 10px; } .pause-track strong { font-size: 15px; } .pause-actions button { font-size: 15px; padding: 16px 20px; } .pause-actions button:nth-child(2) { margin-inline: 8px; } .pause-actions button:last-child { margin-inline: 16px; } }
 @media(max-height:620px) { .game-shell .pause-overlay { justify-content: flex-start; } .pause-card .pause-title { margin-bottom: 12px; font-size: 25px; } .pause-track { margin-bottom: 16px; } .pause-track img { width: 42px; height: 42px; } .pause-actions button { padding-block: 12px; } .pause-card small { margin-top: 12px; } }
 @media(prefers-reduced-motion:reduce) { .pause-card { animation: none; } .pause-actions button { transition: none; } }
 
