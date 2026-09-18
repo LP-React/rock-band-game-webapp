@@ -30,11 +30,10 @@ export function SettingsPanel({ settings, theme, onSave, onClose }: { settings: 
       }}>{editing === lane ? '···' : keyLabel(key)}<small>{editing === lane ? 'PULSA UNA TECLA' : 'CAMBIAR'}</small></button></label>)}</div>
       <div id="binding-status" className="binding-status" role="status" data-error={!!message}>{message || (editing !== null ? `Asignando ${colors[editing]} · Pulsa una tecla. Esc cancela.` : 'Espacio: boost · Esc: pausa. Cada color necesita una tecla diferente.')}</div>
     </section>
-    <section className="settings-section"><div className="settings-heading"><h3>Sonido y pista</h3><span>A TU RITMO</span></div>
-      <label className="setting-row"><span>Volumen<small>0–200 %</small></span><input type="range" min="0" max="200" value={draft.volume} onChange={event => setDraft({ ...draft, volume: Number(event.target.value) })} /><output>{draft.volume}%</output></label>
+    <section className="settings-section"><div className="settings-heading"><h3>Tu pista</h3><span>A TU RITMO</span></div>
       <label className="setting-row"><span>Velocidad de pista<small>0.5–4.0×</small></span><input type="range" min="0.5" max="4" step="0.1" value={draft.speed} onChange={event => setDraft({ ...draft, speed: Number(event.target.value) })} /><output>{draft.speed.toFixed(1)}×</output></label>
       <p>La velocidad cambia cuánto tiempo ves las notas; la música y la ventana de acierto se mantienen.</p>
     </section>
-    <div className="dialog-actions"><button onClick={() => { setDraft({ ...defaults, keys: [...defaults.keys] }); setEditing(null); setMessage('') }}>Restablecer</button><button className="settings-save" onClick={() => { onSave(draft); close() }}>Guardar cambios ↗</button></div>
+    <div className="dialog-actions"><button onClick={() => { setDraft({ ...defaults, volume: settings.volume, keys: [...defaults.keys] }); setEditing(null); setMessage('') }}>Restablecer</button><button className="settings-save" onClick={() => { onSave({ ...draft, volume: settings.volume }); close() }}>Guardar cambios ↗</button></div>
   </dialog>
 }

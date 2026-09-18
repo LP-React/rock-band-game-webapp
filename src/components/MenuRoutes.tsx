@@ -23,7 +23,7 @@ export function CatalogMenu() {
     const timer = setTimeout(() => { void loadSong(session.selected, controller.signal).catch(() => { /* Play retains retry/error handling. */ }) }, 400)
     return () => { clearTimeout(timer); controller.abort() }
   }, [session.selected])
-  return <SongCatalog selected={session.selected} difficulty={session.difficulty} volume={session.settings.volume} loading={false} error="" onSelect={session.select} onDifficulty={session.setDifficulty} onStart={() => { if (session.beginPlay()) router.push('/play') }} onBack={() => router.push('/')} onConfig={session.configure} />
+  return <SongCatalog selected={session.selected} difficulty={session.difficulty} volume={session.settings.volume} onVolumeChange={volume => session.setSettings({ ...session.settings, volume })} loading={false} error="" onSelect={session.select} onDifficulty={session.setDifficulty} onStart={() => { if (session.beginPlay()) router.push('/play') }} onBack={() => router.push('/')} onConfig={session.configure} />
 }
 export function PlayMenu() {
   const session = useSession(), router = useRouter()
@@ -42,5 +42,5 @@ export function PlayMenu() {
     catch { setError('El navegador no permite pantalla completa.') }
   }
   if (!song || !attempt) return <GameLoader song={songs.find(entry => entry.id === attempt?.id)} difficulty={attempt?.difficulty} message="Cargando mapa…" error={error} onRetry={() => { setError(''); setRetry(value => value + 1) }} onBack={exit} />
-  return <><GameScreen song={song} difficulty={attempt.difficulty} settings={session.settings} onConfig={session.configure} onExit={exit} onFullscreen={() => void fullscreen()} />{error && <div className="error" role="alert">{error}<button onClick={() => setError('')}>Cerrar</button></div>}</>
+  return <><GameScreen song={song} difficulty={attempt.difficulty} settings={session.settings} onVolumeChange={volume => session.setSettings({ ...session.settings, volume })} onConfig={session.configure} onExit={exit} onFullscreen={() => void fullscreen()} />{error && <div className="error" role="alert">{error}<button onClick={() => setError('')}>Cerrar</button></div>}</>
 }

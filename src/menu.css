@@ -147,7 +147,7 @@
 .home-screen .home-music-controls button { background:transparent; border:0; padding:6px 8px; font-size:13px; border-radius:50%; }
 .home-screen .home-music-controls .music-toggle { background:#fff1; width:32px; height:32px; }
 .home-volume { position:relative; }
-.home-screen .music-volume-toggle { display:grid; place-items:center; width:34px; height:34px; padding:0; background:transparent; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); color:var(--accent); border-radius:50%; }
+.menu-header .music-volume-toggle { display:grid; place-items:center; width:34px; height:34px; padding:0; background:transparent; border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); color:var(--accent); border-radius:50%; }
 .home-screen .music-volume-toggle[aria-pressed=false] { color:#c8bcca; }
 .home-volume-panel { position:absolute; top:100%; right:0; z-index:4; width:180px; padding:16px 12px 12px; visibility:hidden; opacity:0; }
 .home-volume:hover .home-volume-panel,.home-volume:focus-within .home-volume-panel { visibility:visible; opacity:1; }
@@ -164,7 +164,7 @@
 @media(max-width:760px) { .home-screen .home-navigation { margin:0; }.home-screen .menu-ribbon { border-radius:35px; padding:20px 24px; }.play-modes { margin-left:0; }.how-to-play dl>div { grid-template-columns:100px 1fr; gap:8px; } }
 @media(prefers-reduced-motion:reduce) { .home-screen .hero-record,.home-main-actions,.home-screen .menu-ribbon { transition:none; }.play-modes,.home-main-actions { animation:none; } }
 @media(max-width:760px) { .home-screen { overflow-x:clip; }.home-screen .home-music { width:100%; padding-top:8px; border-top:1px solid #fff1; }.home-screen .menu-header { gap:14px; } }
-.catalog-screen .menu-header button,.catalog-screen .song-search { font-size:14px; }
+.catalog-screen .menu-header button:not(.music-volume-toggle),.catalog-screen .song-search { font-size:14px; }
 .catalog-screen .eyebrow,.catalog-screen .list-columns { font-size:11px; }
 .catalog-screen .song-search input { font-size:15px; }
 .catalog-screen .artist-divider { font-size:13px; }

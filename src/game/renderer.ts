@@ -149,42 +149,44 @@ export function drawHighway(state: RenderState) {
     c.save(); path([point(0, 0), point(5, 0), point(5, 1), point(0, 1)]); c.clip()
     c.fillStyle = cached.entrance; c.fillRect(0, top - 1, w, h * .20 + 1); c.restore()
     const compact = w < 700
-    const boardLeft = point(0, hit).x, boardRight = point(5, hit).x
-    const hudX = compact ? 12 : Math.max(20, boardLeft - 240), hudY = h * (compact ? .30 : .60), hudWidth = compact ? 115 : 190
+    const boardLeft = point(0, hit).x
+    const hudX = compact ? 12 : Math.max(20, boardLeft - 240), hudY = h * (compact ? .30 : .60)
     c.save()
     const scoreEntrance = state.preparing === undefined ? 1 : Math.min(1, state.preparing / .7)
     c.globalAlpha = scoreEntrance; c.translate(-24 * (1 - scoreEntrance), 0)
-    const tab = (x: number, y: number, width: number, height: number, fill: string) => {
-      c.beginPath(); c.roundRect(x, y, width, height, [12, 28, 28, 12]); c.fillStyle = fill; c.fill()
-      c.strokeStyle = accent + (boost ? '90' : '30'); c.lineWidth = 1; c.stroke()
-    }
-    c.shadowColor = accent; c.shadowBlur = boost ? 6 + pulse * 14 : 0
-    tab(hudX, hudY, hudWidth, compact ? 75 : 104, panel + 'cc')
-    c.shadowBlur = 0
-    c.textAlign = 'left'; c.fillStyle = '#c9c3d1'; c.font = '10px Segoe UI'; c.fillText('PUNTUACIÓN', hudX + 12, hudY + 22)
-    c.fillStyle = selection; c.font = compact ? '900 23px Segoe UI' : '900 37px Segoe UI'; c.fillText(String(state.score).padStart(6, '0'), hudX + 12, hudY + (compact ? 52 : 69))
-    tab(hudX + 8, hudY + (compact ? 79 : 110), hudWidth - 16, 38, '#100d17cc')
-    c.fillStyle = accent; c.font = compact ? 'bold 12px Segoe UI' : 'bold 15px Segoe UI'; c.fillText(String(state.streak) + ' RACHA', hudX + 20, hudY + (compact ? 103 : 135))
+    c.textAlign = 'left'; c.fillStyle = '#c9c3d1'; c.font = '10px Segoe UI'; c.fillText('PUNTUACIÓN', hudX, hudY + 12)
+    c.shadowColor = boost ? accent : '#000'; c.shadowBlur = boost ? 10 + pulse * 16 : 8
+    c.fillStyle = selection; c.font = compact ? 'italic 900 25px Consolas, monospace' : 'italic 900 42px Consolas, monospace'
+    c.fillText(String(state.score).padStart(6, '0'), hudX, hudY + (compact ? 43 : 63))
+    c.shadowBlur = 0; c.fillStyle = accent; c.font = compact ? 'bold 13px Consolas, monospace' : 'bold 18px Consolas, monospace'
+    c.fillText(String(state.streak) + ' RACHA', hudX + 4, hudY + (compact ? 70 : 96))
     c.restore()
     c.save()
     const lifeEntrance = state.preparing === undefined ? 1 : Math.max(0, Math.min(1, (state.preparing - .2) / .7))
     c.globalAlpha = lifeEntrance
-    const lifeX = compact ? w - 25 : Math.min(w - 40, boardRight + 25), lifeY = h * .55, lifeHeight = Math.min(170, h * .27)
-    const energyX = compact ? 18 : Math.max(18, boardLeft - 35), meterWidth = compact ? 10 : 14
+    const meterTop = .72, gap = compact ? 12 : 22, meterWidth = compact ? 8 : 14
     const themedLife = cached.meter
-    c.textAlign = 'center'; c.fillStyle = '#c9c3d1'; c.font = '9px Segoe UI'
-    c.fillText('VIDA', lifeX + meterWidth / 2, lifeY - 16); c.fillText('BOOST', energyX + meterWidth / 2, lifeY - 16)
-    c.shadowColor = accent; c.shadowBlur = boost ? 8 + pulse * 10 : 0
-    for (let segment = 0; segment < 20; segment++) {
-      const segmentY = lifeY + lifeHeight - (segment + 1) * lifeHeight / 20
-      c.fillStyle = segment / 20 < state.mechanics.health ? boost ? themedLife : segment < 5 ? '#ff4659' : segment < 10 ? '#ffe14d' : '#72eb48' : '#ffffff15'
-      c.fillRect(lifeX, segmentY, meterWidth, lifeHeight / 20 - 2)
-      c.fillStyle = segment / 20 < state.mechanics.energy ? themedLife : '#ffffff15'; c.fillRect(energyX, segmentY, meterWidth, lifeHeight / 20 - 2)
+    // Project each segment beside the rails, sharing their perspective and slope.
+    const meter = (lane: number, side: number, value: number, label: string) => {
+      c.shadowColor = accent; c.shadowBlur = boost ? 8 + pulse * 10 : 0
+      for (let segment = 0; segment < 20; segment++) {
+        const depth = hit - segment / 20 * (hit - meterTop)
+        const a = point(lane, depth), b = point(lane, depth - (hit - meterTop) / 20 * .78)
+        path([{ x: a.x + side * gap, y: a.y }, { x: a.x + side * (gap + meterWidth), y: a.y }, { x: b.x + side * (gap + meterWidth), y: b.y }, { x: b.x + side * gap, y: b.y }])
+        c.fillStyle = segment / 20 < value ? label === 'BOOST' || boost ? themedLife : segment < 5 ? '#ff4659' : segment < 10 ? '#ffe14d' : '#72eb48' : '#ffffff15'; c.fill()
+      }
+      c.shadowBlur = 0
+      const top = point(lane, meterTop), bottom = point(lane, hit), middle = point(lane, (meterTop + hit) / 2)
+      c.textAlign = 'center'; c.fillStyle = '#c9c3d1'; c.font = '9px Segoe UI'; c.fillText(label, top.x + side * (gap + meterWidth / 2), top.y - 14)
+      if (label === 'BOOST') {
+        c.strokeStyle = selection; c.lineWidth = 1; c.beginPath(); c.moveTo(middle.x - gap - meterWidth - 3, middle.y); c.lineTo(middle.x - gap + 3, middle.y); c.stroke()
+        c.fillStyle = selection; c.font = '10px Segoe UI'; c.fillText(String(Math.round(value * 100)) + '%', bottom.x - gap - meterWidth / 2, bottom.y + 22)
+        c.fillStyle = '#c9c3d1'; c.font = '8px Segoe UI'; c.fillText('ESPACIO', bottom.x - gap - meterWidth / 2, bottom.y + 36)
+      }
+      return bottom.x + side * (gap + meterWidth / 2)
     }
-    c.shadowBlur = 0; c.fillStyle = selection; c.fillRect(energyX - 3, lifeY + lifeHeight / 2, meterWidth + 6, 1)
-    c.font = '10px Segoe UI'; c.fillText(String(Math.round(state.mechanics.energy * 100)) + '%', energyX + meterWidth / 2, lifeY + lifeHeight + 20)
-    c.fillStyle = '#c9c3d1'; c.font = '8px Segoe UI'; c.fillText('ESPACIO', energyX + meterWidth / 2, lifeY + lifeHeight + 35)
-    const multiplierX = lifeX + meterWidth / 2, multiplierY = lifeY + lifeHeight + 36, multiplierRadius = compact ? 16 : 23
+    meter(0, -1, state.mechanics.energy, 'BOOST')
+    const multiplierX = meter(5, 1, state.mechanics.health, 'VIDA'), multiplierY = point(5, hit).y + 30, multiplierRadius = compact ? 15 : 23
     ellipse(multiplierX, multiplierY, multiplierRadius, multiplierRadius, '#100d17dd', boost ? selection : accent)
     c.fillStyle = selection; c.font = compact ? '900 14px Segoe UI' : '900 20px Segoe UI'; c.fillText('×' + state.multiplier, multiplierX, multiplierY + 6)
     c.restore()

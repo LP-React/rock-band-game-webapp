@@ -1,3 +1,4 @@
+import { VolumeControl } from './VolumeControl'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { themeStyle } from '../songs/presentation'
@@ -14,7 +15,7 @@ import type { Settings } from '../game/settings'
 import type { Difficulty, Song } from '../songs/types'
 import { difficultyLabels } from '../songs/catalog'
 
-export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFullscreen }: { song: Song; difficulty: Difficulty; settings: Settings; onConfig: () => void; onExit: () => void; onFullscreen: () => void }) {
+export function GameScreen({ song, difficulty, settings, onVolumeChange, onConfig, onExit, onFullscreen }: { song: Song; difficulty: Difficulty; settings: Settings; onVolumeChange: (volume: number) => void; onConfig: () => void; onExit: () => void; onFullscreen: () => void }) {
   const canvas = useRef<HTMLCanvasElement>(null), engine = useRef<Prototype | null>(null), initial = useRef(settings)
   const preparation = useRef<AbortController | null>(null)
   const [result, setResult] = useState<GameResult | null>(null)
@@ -52,7 +53,7 @@ export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFul
   return <main className="game-shell" style={themeStyle(song.theme) as CSSProperties}>
     <img className="game-backdrop" src={song.background ?? song.artwork} alt="" aria-hidden="true" />
     <div className="stage-lines" aria-hidden="true" />
-    <header className="menu-header game-header" inert={paused}><button onClick={onExit}>← Catálogo</button><span className="brand">RIFF<span> / LAB</span></span><div className="header-actions"><button className="fullscreen-icon" disabled={!running} onClick={() => void engine.current?.togglePause()} aria-label="Pausar partida" title="Pausar · ESC">Ⅱ</button><button disabled={loading} onClick={() => { if (running && !paused) void engine.current?.togglePause(); onConfig() }}>Configuración</button><button className="fullscreen-icon" onClick={onFullscreen} aria-label="Alternar pantalla completa" title="Pantalla completa"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" /></svg></button></div></header>
+    <header className="menu-header game-header" data-playing={running && !paused && !loading}><span className="brand">RIFF<span> / LAB</span></span><div className="header-actions"><button disabled={loading} onClick={() => { if (running && !paused) void engine.current?.togglePause(); onConfig() }}>Configuración</button><button className="fullscreen-icon" onClick={onFullscreen} aria-label="Alternar pantalla completa" title="Pantalla completa"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" /></svg></button><VolumeControl volume={settings.volume} onChange={onVolumeChange} /></div></header>
     <section className={loading && leavingLoader ? 'stage stage-preparing' : 'stage'} aria-label="Juego de guitarra"><canvas ref={canvas} tabIndex={paused ? -1 : 0} aria-label={`Cinco carriles: ${settings.keys.map(keyLabel).join(', ')}. Espacio activa boost. Escape pausa.`} />
       <div className="stage-track"><img src={song.artwork} alt="" /><div><strong>{song.title}</strong><span>{song.artist}</span></div></div>
       {paused && !loading && <PauseMenu song={song} onResume={() => void engine.current?.togglePause()} onRestart={() => void restart()} onExit={onExit} />}
