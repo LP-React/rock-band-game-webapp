@@ -1,4 +1,5 @@
 // Keep the saved volume separate from the temporary transition gain.
+export const menuFadeTimes = { entrance: 900, transition: 700, pause: 400, repeatGap: 1500 }
 export class MenuFade {
   private gain = 0
   private volume = 1

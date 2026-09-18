@@ -3,7 +3,7 @@ import type { RefObject } from 'react'
 import { songs } from '../songs/catalog'
 import { menuLevels } from '../game/menu-audio'
 import { fallbackTheme } from '../songs/presentation'
-import { MenuFade } from '../game/menu-fade'
+import { MenuFade, menuFadeTimes } from '../game/menu-fade'
 
 export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange }: { volume: number; onVolumeChange: (volume: number) => void; canvas: RefObject<HTMLCanvasElement | null>; index: number; onSongChange: (index: number) => void }) {
   const [playing, setPlaying] = useState(true), [error, setError] = useState('')
@@ -119,7 +119,7 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
         if (audio.current!.paused && audio.current!.readyState >= 1) audio.current!.currentTime = silentTime()
         await graph.current!.context.resume(); audio.current!.muted = false; setMuted(false)
       }
-      await audio.current!.play(); void fade.current?.to(1, 450); setError('')
+      await audio.current!.play(); void fade.current?.to(1, menuFadeTimes.entrance); setError('')
     } catch (error) {
       if (audible && !(error instanceof DOMException && error.name === 'AbortError')) {
         audio.current!.muted = true; setMuted(true); redraw.current?.()
@@ -131,12 +131,12 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
     silentClock.current = { started: null, time: audio.current!.paused ? silentTime() : audio.current!.currentTime }
     continuePlaying.current = false
     setPlaying(false)
-    if (await fade.current?.to(0, 250)) { audio.current!.pause(); redraw.current?.() }
+    if (await fade.current?.to(0, menuFadeTimes.pause)) { audio.current!.pause(); redraw.current?.() }
   }
   async function change(step: number) {
     continuePlaying.current = playing
     setAutoStart(continuePlaying.current)
-    if (!await fade.current?.to(0, 220)) return
+    if (!await fade.current?.to(0, menuFadeTimes.transition)) return
     audio.current!.pause(); setError(''); onSongChange((index + step + songs.length) % songs.length)
   }
   async function mute() {
