@@ -43,6 +43,35 @@
 
 /* Album-led catalog detail; list geometry and song palettes stay unchanged. */
 .record-stage { position:relative; display:inline-block; }
+.home-screen .hero-record { transform:scale(var(--record-pulse,1)); transition:transform 90ms ease-out,box-shadow .3s; }
+.home-screen .home-navigation { margin-left:-20px; }
+.home-screen .menu-ribbon { border-radius:0 60px 60px 0; padding:26px 30px 26px 65px; margin:10px 0; transform:none; transition:padding .25s,background .25s; }
+.home-screen .menu-ribbon>* { transform:none; }
+.home-screen .menu-ribbon:hover { transform:none; }
+.home-screen .menu-ribbon strong { font-size:32px; }
+.home-screen .config-ribbon strong { font-size:26px; }
+.home-main-actions { transition:opacity .25s; }
+.choosing-mode .home-main-actions { opacity:.65; }
+.home-screen .choosing-mode .menu-ribbon { padding:13px 28px 13px 65px; }
+.home-screen .choosing-mode .menu-ribbon strong { font-size:20px; }
+.play-modes { margin:18px 0 0 55px; animation:mode-enter .25s ease-out; }
+.mode-option { display:flex; justify-content:space-between; align-items:center; width:100%; padding:20px 24px; margin:8px 0; text-align:left; background:var(--secondary); color:#271d28; border:0; border-radius:12px 35px 35px 12px; }
+.mode-option strong { display:block; font-size:25px; }
+.mode-option small { display:block; margin-top:4px; font-size:13px; }
+.mode-option b { font-size:25px; }
+.friends-mode { background:#342a36; color:#b9adb9; opacity:.75; }
+.home-screen .friends-mode:disabled { opacity:.85; }
+.home-screen .config-ribbon:hover:not(:disabled) { background:color-mix(in srgb,var(--panel) 80%,var(--accent)); }
+.mode-back,.help-button { background:transparent; border:1px solid #fff3; padding:9px 16px; border-radius:20px; font-size:14px; color:#e9dfeb; }
+.mode-back { margin-top:6px; }
+.help-button span { display:inline-grid; place-items:center; border:1px solid #fff5; border-radius:50%; width:20px; height:20px; margin-left:8px; }
+.help-frets { display:flex; gap:12px; margin:24px 0; }
+.help-frets kbd { border:1px solid currentColor; padding:10px 15px; border-radius:8px; }
+.how-to-play dl>div { display:grid; grid-template-columns:130px 1fr; gap:16px; padding:10px 0; }
+.how-to-play dd { margin:0; color:#c8bcca; }
+.how-to-play p { line-height:1.6; }
+.how-to-play .primary,.how-to-play .primary:hover:not(:disabled) { background:var(--accent); color:#271d28; }
+@keyframes mode-enter { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
 .record-spectrum { position:absolute; width:130%; height:130%; left:-15%; top:-15%; pointer-events:none; }
 .home-music { display:flex; align-items:center; gap:12px; width:min(430px,45vw); }
 .home-music>img { width:44px; height:44px; object-fit:cover; border-radius:6px; }
@@ -52,6 +81,13 @@
 .home-music-copy span { font-size:11px; color:#c8bcca; }
 .home-music-controls { display:flex; gap:4px; }
 .home-screen .home-music-controls button { padding:7px 10px; font-size:16px; }
+.home-player-actions { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.home-screen .home-music-controls { background:#ffffff0b; border:1px solid #fff2; padding:3px; border-radius:24px; align-items:center; gap:1px; }
+.home-screen .home-music-controls button { background:transparent; border:0; padding:6px 8px; font-size:13px; border-radius:50%; }
+.home-screen .home-music-controls .music-toggle { background:#fff1; width:32px; height:32px; }
+.home-screen .music-sound { background:transparent; border:0; padding:3px 5px; font-size:11px; color:var(--accent); white-space:nowrap; }
+@media(max-width:760px) { .home-screen .home-navigation { margin:0; }.home-screen .menu-ribbon { border-radius:35px; padding:20px 24px; }.home-screen .choosing-mode .menu-ribbon { padding:12px 24px; }.play-modes { margin-left:0; }.how-to-play dl>div { grid-template-columns:100px 1fr; gap:8px; } }
+@media(prefers-reduced-motion:reduce) { .home-screen .hero-record,.home-main-actions,.home-screen .menu-ribbon { transition:none; }.play-modes { animation:none; } }
 @media(max-width:760px) { .home-screen { overflow-x:clip; }.home-music { width:100%; padding-top:8px; border-top:1px solid #fff1; }.home-screen .menu-header { gap:14px; } }
 .catalog-screen .menu-header button,.catalog-screen .song-search { font-size:14px; }
 .catalog-screen .eyebrow,.catalog-screen .list-columns { font-size:11px; }

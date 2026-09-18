@@ -1,26 +1,39 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { songs } from '../songs/catalog'
+import { menuLevels } from '../game/menu-audio'
 
 export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObject<HTMLCanvasElement | null> }) {
   const [index, setIndex] = useState(() => Math.max(0, songs.findIndex(song => song.reactiveGuitar)))
   const [playing, setPlaying] = useState(false), [error, setError] = useState('')
+  const [muted, setMuted] = useState(true)
+  const [autoStart, setAutoStart] = useState(true)
   const audio = useRef<HTMLAudioElement>(null)
   const graph = useRef<{ context: AudioContext; analyser: AnalyserNode } | null>(null)
-  const continuePlaying = useRef(false)
+  const continuePlaying = useRef(true), levels = useRef<Float32Array>(new Float32Array())
   const song = songs[index]
   useEffect(() => { if (audio.current) audio.current.volume = volume / 100 }, [volume])
+  useEffect(() => {
+    const controller = new AbortController()
+    levels.current = new Float32Array()
+    void menuLevels(song.preview, controller.signal).then(data => { if (!controller.signal.aborted) levels.current = data }).catch(() => { /* Keep playback available without visualization on decode failure. */ })
+    return () => controller.abort()
+  }, [song.preview])
   useEffect(() => {
     const player = audio.current!
     const surface = canvas.current!, painter = surface.getContext('2d')!
     const reduced = matchMedia('(prefers-reduced-motion: reduce)')
     const data = new Uint8Array(128)
     let frame = 0
+    let disposed = false
     function draw() {
       cancelAnimationFrame(frame)
       const analyser = graph.current?.analyser
-      if (analyser && !player.paused) analyser.getByteFrequencyData(data)
-      else data.fill(0)
+      const silentLevel = levels.current[Math.floor(player.currentTime * 20)] ?? 0
+      if (analyser && !player.paused && !player.muted) analyser.getByteFrequencyData(data)
+      else data.fill(player.paused ? 0 : silentLevel * 210)
+      const pulse = player.paused || reduced.matches ? 0 : silentLevel ** 2 * .055
+      surface.parentElement!.style.setProperty('--record-pulse', String(1 + pulse))
       painter.clearRect(0, 0, 600, 600)
       painter.strokeStyle = '#ffe5c3'; painter.lineWidth = 2
       painter.beginPath()
@@ -44,31 +57,38 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
     player.addEventListener('play', draw); player.addEventListener('pause', draw)
     document.addEventListener('visibilitychange', draw); reduced.addEventListener('change', draw)
     draw()
+    // Cached media can finish loading before effects attach (including Strict Mode remounts).
+    queueMicrotask(() => {
+      if (!disposed && continuePlaying.current && player.readyState >= 1) void player.play().catch(error => { if (!disposed && error.name !== 'AbortError') setError('Pulsa reproducir para iniciar la música.') })
+    })
     return () => {
+      disposed = true
       player.removeEventListener('play', draw); player.removeEventListener('pause', draw)
       document.removeEventListener('visibilitychange', draw); reduced.removeEventListener('change', draw)
       cancelAnimationFrame(frame); player.pause(); void graph.current?.context.close(); graph.current = null
     }
   }, [canvas])
-  async function play() {
+  async function play(audible = !audio.current!.muted) {
     try {
-      if (!graph.current) {
+      if (audible && !graph.current) {
         const context = new AudioContext(), analyser = context.createAnalyser()
         analyser.fftSize = 256; analyser.smoothingTimeConstant = .85
         context.createMediaElementSource(audio.current!).connect(analyser); analyser.connect(context.destination)
         graph.current = { context, analyser }
       }
-      await graph.current.context.resume(); await audio.current!.play(); setError('')
-    } catch { setError('Pulsa reproducir para iniciar la música.') }
+      if (audible) { await graph.current!.context.resume(); audio.current!.muted = false; setMuted(false) }
+      await audio.current!.play(); setError('')
+    } catch (error) { if (!(error instanceof DOMException && error.name === 'AbortError')) setError('Pulsa reproducir para iniciar la música.') }
   }
   function change(step: number) {
     continuePlaying.current = !audio.current!.paused
+    setAutoStart(continuePlaying.current)
     audio.current!.pause(); setError(''); setIndex(value => (value + step + songs.length) % songs.length)
   }
   return <div className="home-music" aria-label="Reproductor del menú">
-    <audio ref={audio} src={song.preview} preload="metadata" loop onLoadedMetadata={() => { audio.current!.currentTime = song.previewStart ?? 0; if (continuePlaying.current) void play() }} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={() => setError('Audio no disponible. Prueba otra canción.')} />
+    <audio ref={audio} src={song.preview} preload="auto" loop muted={muted} autoPlay={autoStart} playsInline onLoadedMetadata={() => { const player = audio.current!; player.currentTime = Math.max(0, Math.min(song.previewStart ?? 0, Math.max(0, player.duration - 1))); if (continuePlaying.current) void play() }} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={() => setError('Audio no disponible. Prueba otra canción.')} />
     <img src={song.artwork} alt="" />
-    <div className="home-music-copy"><small>{playing ? 'SONANDO AHORA' : 'MÚSICA DEL MENÚ'}</small><strong>{song.title}</strong><span>{song.artist}</span>{error && <span role="status">{error}</span>}</div>
-    <div className="home-music-controls"><button aria-label="Canción anterior" onClick={() => change(-1)}>‹</button><button aria-label={playing ? 'Pausar música' : 'Reproducir música'} onClick={() => { if (playing) audio.current!.pause(); else void play() }}>{playing ? 'Ⅱ' : '▶'}</button><button aria-label="Siguiente canción" onClick={() => change(1)}>›</button></div>
+    <div className="home-music-copy"><small>{playing ? muted ? 'REPRODUCIENDO · SIN SONIDO' : 'SONANDO AHORA' : 'EN PAUSA'}</small><strong>{song.title}</strong><span>{song.artist}</span>{error && <span role="status">{error}</span>}</div>
+    <div className="home-player-actions"><div className="home-music-controls"><button aria-label="Canción anterior" onClick={() => change(-1)}>⏮</button><button className="music-toggle" aria-label={playing ? 'Pausar música' : 'Reproducir música'} onClick={() => { if (playing) audio.current!.pause(); else void play() }}>{playing ? 'Ⅱ' : '▶'}</button><button aria-label="Siguiente canción" onClick={() => change(1)}>⏭</button></div><button className="music-sound" aria-label={muted ? 'Activar sonido' : 'Silenciar música'} onClick={() => { if (muted) void play(true); else { audio.current!.muted = true; setMuted(true) } }}>{muted ? 'Activar sonido' : 'Silenciar'}</button></div>
   </div>
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '../App'
-import { songs, loadSong } from '../songs/catalog'
+import { loadSong } from '../songs/catalog'
 import type { Song } from '../songs/types'
 import { HomeScreen } from './HomeScreen'
 import { SongCatalog } from './SongCatalog'
@@ -11,7 +11,7 @@ import { GameScreen } from './GameScreen'
 
 export function HomeMenu() {
   const session = useSession(), router = useRouter()
-  return <HomeScreen settings={session.settings} count={songs.length} onPlay={() => router.push('/catalog')} onConfig={session.configure} />
+  return <HomeScreen settings={session.settings} onPlay={() => router.push('/catalog')} onConfig={session.configure} />
 }
 export function CatalogMenu() {
   const session = useSession(), router = useRouter()
