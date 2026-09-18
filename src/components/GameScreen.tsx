@@ -40,6 +40,7 @@ export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFul
   }, [song, difficulty])
   useEffect(() => { engine.current?.setSettings(settings) }, [settings])
   async function restart() {
+    setPaused(false); setRunning(false);
     setResult(null); setError(''); setLoading(true); setStep(null); setLeavingLoader(false)
     preparation.current?.abort()
     const controller = new AbortController(); preparation.current = controller
@@ -54,7 +55,7 @@ export function GameScreen({ song, difficulty, settings, onConfig, onExit, onFul
     <header className="menu-header game-header" inert={paused}><button onClick={onExit}>← Catálogo</button><span className="brand">RIFF<span> / LAB</span></span><div className="header-actions"><button disabled={loading} onClick={() => { if (running && !paused) void engine.current?.togglePause(); onConfig() }}>Configuración</button><button className="fullscreen-icon" onClick={onFullscreen} aria-label="Alternar pantalla completa" title="Pantalla completa"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" /></svg></button></div></header>
     <div className="game-track-strip" inert={paused}><img src={song.artwork} alt="" /><div><strong>{song.title}</strong><span>{song.artist}</span></div><span className="game-difficulty">{difficultyLabels[difficulty]} · {settings.speed.toFixed(1)}×</span><button disabled={!running} onClick={() => void engine.current?.togglePause()} aria-label={paused ? 'Continuar partida' : 'Pausar partida'} title="Pausa · ESC">Ⅱ <kbd>ESC</kbd></button></div>
     <section className={loading && leavingLoader ? 'stage stage-preparing' : 'stage'} aria-label="Juego de guitarra"><canvas ref={canvas} tabIndex={paused ? -1 : 0} aria-label={`Cinco carriles: ${settings.keys.map(keyLabel).join(', ')}. Espacio activa boost. Escape pausa.`} /><div className="stage-status" aria-live="polite">{loading && step !== null ? 'Prepárate · ESC para volver al catálogo' : status}</div>
-      {paused && <PauseMenu song={song} onResume={() => void engine.current?.togglePause()} onRestart={() => void restart()} onConfig={onConfig} onExit={onExit} />}
+      {paused && !loading && <PauseMenu song={song} onResume={() => void engine.current?.togglePause()} onRestart={() => void restart()} onExit={onExit} />}
       {loading && step === null && <GameLoader song={song} difficulty={difficulty} message={phase} leaving={leavingLoader} onBack={onExit} />}
       {loading && step !== null && <div className="stage-countdown" role="status" aria-label={`Prepárate. ${step}`}><span>PREPÁRATE</span><strong key={step}>{step}</strong></div>}
       {result && !loading && <ResultsScreen song={song} difficulty={difficulty} result={result} saved={saved} onRestart={() => void restart()} onExit={onExit} />}
