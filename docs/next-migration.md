@@ -6,7 +6,7 @@ The existing repository now uses Next.js 16.3.5 App Router instead of Vite. Reac
 
 - `/`: prerendered welcome screen with shared configuration.
 - `/catalog`: prerendered library with client selection, previews, search, and difficulty controls.
-- `/play/[id]/[difficulty]`: validates the song/difficulty on the server and mounts the client engine. Invalid combinations return 404. Attempts are excluded from indexing.
+- `/play`: mounts the client engine for a validated attempt started from the catalog. Song/difficulty stay in session memory, outside the URL. Direct access or a full reload redirects to the catalog. Attempts are excluded from indexing; old parameterized routes no longer exist.
 - `src/App.tsx`: session provider retained across client navigation. Local preferences load after hydration; the initial server/client output uses the same defaults. Selection/difficulty persist during navigation, not after a full reload.
 - `src/components/MenuRoutes.tsx`: client navigation and selected-chart loading. Browser APIs execute in effects or event handlers, not during server rendering.
 - `src/app/layout.tsx`: global styles, Spanish document language, and initial metadata. Per-song public SEO pages, sitemap, analytics, and multiplayer remain future work.

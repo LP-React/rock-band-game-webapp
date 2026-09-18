@@ -1,9 +1,14 @@
 import manifest from '../generated/songs/manifest.json'
 import type { Song, Difficulty } from './types'
 import type { ChartNote } from '../game/chart'
+import { presentations, fallbackTheme } from './presentation'
 const asset = (id: string, path: string) => `/songs/${id}/media/${encodeURIComponent(path.split('/').at(-1)!)}`
 export const songs = manifest.songs.map(entry => ({
   ...entry, artwork: entry.artwork ? asset(entry.id, entry.artwork) : '/favicon.svg',
+  ...presentations[entry.id]?.metadata,
+  theme: presentations[entry.id]?.theme ?? fallbackTheme,
+  background: presentations[entry.id]?.background ?? (entry.artwork ? asset(entry.id, entry.artwork) : '/favicon.svg'),
+  description: presentations[entry.id]?.description,
   preview: asset(entry.id, entry.preview),
   stems: entry.stems.map(stem => ({ url: asset(entry.id, stem.path), guitar: stem.guitar })),
   difficulties: entry.difficulties as Difficulty[], charts: {}, beats: [],

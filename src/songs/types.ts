@@ -1,4 +1,5 @@
 import type { ChartNote } from '../game/chart'
+import type { SongTheme } from './presentation'
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert'
 export interface Song {
   id: string
@@ -23,4 +24,7 @@ export interface Song {
   rating?: number | null
   preview?: string
   previewStart?: number
+  theme?: SongTheme
+  background?: string
+  description?: string
 }
