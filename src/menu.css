@@ -60,6 +60,13 @@
 .friends-mode { background:#342a36; color:#b9adb9; opacity:.75; }
 .home-screen .friends-mode:disabled { opacity:.85; }
 .home-screen .config-ribbon:hover:not(:disabled) { background:color-mix(in srgb,var(--panel) 80%,var(--accent)); }
+.home-screen .play-ribbon { background:var(--secondary); color:var(--on-accent); }
+.home-screen .mode-option:not(:disabled),.home-screen .record-label,.home-screen .how-to-play .primary { color:var(--on-accent); }
+.home-screen .friends-mode { background:var(--panel); }
+.home-screen .hero-record { border-color:var(--secondary); }
+.home-screen .hero-record:hover { box-shadow:0 0 0 16px #ffffff12,0 0 70px color-mix(in srgb,var(--accent) 25%,transparent); }
+.home-screen .record-logo em { color:var(--secondary); }
+.home-screen .help-button,.home-screen .mode-back,.home-screen .home-music-controls { border-color:color-mix(in srgb,var(--accent) 35%,transparent); }
 @media(min-width:761px) {
   .home-screen .home-arena { --home-disc:min(410px,36vw,61vh); grid-template-columns:var(--home-disc) minmax(0,1fr); }
   .home-screen .hero-record { width:var(--home-disc); }

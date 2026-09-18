@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { songs } from '../songs/catalog'
 import { menuLevels } from '../game/menu-audio'
+import { fallbackTheme } from '../songs/presentation'
 
-export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObject<HTMLCanvasElement | null> }) {
-  const [index, setIndex] = useState(() => Math.max(0, songs.findIndex(song => song.reactiveGuitar)))
+export function HomeMusic({ volume, canvas, index, onSongChange }: { volume: number; canvas: RefObject<HTMLCanvasElement | null>; index: number; onSongChange: (index: number) => void }) {
   const [playing, setPlaying] = useState(false), [error, setError] = useState('')
   const [muted, setMuted] = useState(true)
   const [autoStart, setAutoStart] = useState(true)
@@ -12,6 +12,11 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
   const graph = useRef<{ context: AudioContext; analyser: AnalyserNode } | null>(null)
   const continuePlaying = useRef(true), levels = useRef<Float32Array>(new Float32Array())
   const song = songs[index]
+  const ringColor = useRef(fallbackTheme.selection), redraw = useRef<(() => void) | null>(null)
+  useEffect(() => {
+    ringColor.current = (song.theme ?? fallbackTheme).selection
+    redraw.current?.()
+  }, [song.theme])
   useEffect(() => { if (audio.current) audio.current.volume = volume / 100 }, [volume])
   useEffect(() => {
     const controller = new AbortController()
@@ -37,7 +42,7 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
       const pulse = player.paused || reduced.matches ? 0 : silentLevel ** 3 * .06 + Math.min(1, impact) * .045
       surface.parentElement!.style.setProperty('--record-pulse', String(1 + pulse))
       painter.clearRect(0, 0, 600, 600)
-      painter.strokeStyle = '#ffe5c3'; painter.lineWidth = 2
+      painter.strokeStyle = ringColor.current; painter.lineWidth = 2
       painter.beginPath()
       for (let i = 0; i <= 96; i++) {
         const angle = i / 96 * Math.PI * 2
@@ -60,6 +65,7 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
       }
       if (!player.paused && !reduced.matches && !document.hidden) frame = requestAnimationFrame(draw)
     }
+    redraw.current = draw
     player.addEventListener('play', draw); player.addEventListener('pause', draw)
     document.addEventListener('visibilitychange', draw); reduced.addEventListener('change', draw)
     draw()
@@ -69,6 +75,7 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
     })
     return () => {
       disposed = true
+      redraw.current = null
       player.removeEventListener('play', draw); player.removeEventListener('pause', draw)
       document.removeEventListener('visibilitychange', draw); reduced.removeEventListener('change', draw)
       cancelAnimationFrame(frame); player.pause(); void graph.current?.context.close(); graph.current = null
@@ -89,7 +96,7 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
   function change(step: number) {
     continuePlaying.current = !audio.current!.paused
     setAutoStart(continuePlaying.current)
-    audio.current!.pause(); setError(''); setIndex(value => (value + step + songs.length) % songs.length)
+    audio.current!.pause(); setError(''); onSongChange((index + step + songs.length) % songs.length)
   }
   return <div className="home-music" aria-label="Reproductor del menú">
     <audio ref={audio} src={song.preview} preload="auto" loop muted={muted} autoPlay={autoStart} playsInline onLoadedMetadata={() => { const player = audio.current!; player.currentTime = Math.max(0, Math.min(song.previewStart ?? 0, Math.max(0, player.duration - 1))); if (continuePlaying.current) void play() }} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onError={() => setError('Audio no disponible. Prueba otra canción.')} />

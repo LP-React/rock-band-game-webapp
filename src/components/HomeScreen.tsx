@@ -3,19 +3,21 @@ import type { CSSProperties } from 'react'
 import { keyLabel } from '../game/settings'
 import type { Settings } from '../game/settings'
 import { songs } from '../songs/catalog'
+import { themeStyle } from '../songs/presentation'
 import { HomeMusic } from './HomeMusic'
 import { HowToPlay } from './HowToPlay'
 
 export function HomeScreen({ settings, onPlay, onConfig }: { settings: Settings; onPlay: () => void; onConfig: () => void }) {
   const spectrum = useRef<HTMLCanvasElement>(null)
   const [modes, setModes] = useState(false), [help, setHelp] = useState(false)
-  const artwork = songs.find(song => song.reactiveGuitar)?.artwork ?? songs[0].artwork
+  const [musicIndex, setMusicIndex] = useState(() => Math.max(0, songs.findIndex(song => song.reactiveGuitar)))
+  const song = songs[musicIndex]
   function closeModes() { setModes(false) }
-  return <main className="menu-screen home-screen" data-variant="arcade">
+  return <main className="menu-screen home-screen" data-variant="arcade" style={themeStyle(song.theme) as CSSProperties}>
     <h1 className="sr-only">Riff Lab · Juego de guitarra</h1>
-    <img className="menu-backdrop" src={artwork} alt="" aria-hidden="true" />
+    <img key={song.id} className="menu-backdrop" src={song.background ?? song.artwork} alt="" aria-hidden="true" />
     <div className="stage-lines" aria-hidden="true" />
-    <header className="menu-header"><span className="brand">RIFF<span> / LAB</span></span><HomeMusic volume={settings.volume} canvas={spectrum} /></header>
+    <header className="menu-header"><span className="brand">RIFF<span> / LAB</span></span><HomeMusic volume={settings.volume} canvas={spectrum} index={musicIndex} onSongChange={setMusicIndex} /></header>
     <section className="home-arena" aria-label="Menú principal">
       <div className="record-wrap"><div className="record-stage"><canvas ref={spectrum} className="record-spectrum" width={600} height={600} aria-hidden="true" /><button className="hero-record" aria-label="Elegir modo de juego" onClick={() => setModes(true)}><span className="record-label"><strong className="record-logo">RIFF<br /><em>LAB</em></strong></span></button></div></div>
       <nav className="home-navigation" aria-label="Opciones del juego">
