@@ -1,6 +1,7 @@
 import { mkdir, writeFile, readdir, unlink } from 'node:fs/promises'
 import { discoverSongs } from './song-package.mjs'
 import { fileURLToPath } from 'node:url'
+import { prepareSongAssets } from './prepare-song-assets.mjs'
 
 const output = new URL('../src/generated/songs/', import.meta.url)
 const { songs, errors } = await discoverSongs(fileURLToPath(new URL('../src/musics/', import.meta.url)))
@@ -16,3 +17,4 @@ const keep = new Set(songs.map(song => `${song.entry.id}.json`))
 for (const name of await readdir(output)) if (/^[a-f0-9]{16}\.json$/.test(name) && !keep.has(name)) await unlink(new URL(name, output))
 errors.forEach(error => console.error(`Skipped ${error.folder}: ${error.message}`))
 console.log(`Imported ${songs.length}; skipped ${errors.length}.`)
+await prepareSongAssets()

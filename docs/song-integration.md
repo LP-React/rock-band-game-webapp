@@ -14,7 +14,8 @@ No song-specific code or authored maps are required for supported packages. Reru
 - `scripts/song-package.mjs`: recursive discovery, INI metadata, conventional media discovery, validation, per-folder error isolation.
 - `scripts/midi-chart.mjs` / `text-chart.mjs`: original MIDI or text-chart ticks converted to audio-origin seconds, chords, sustains, beats, and boost phrases.
 - `src/generated/songs`: reproducible derived JSON plus `manifest.json`, separated from application code. These artifacts are checked in so a fresh checkout can build; users never supply this format.
-- `src/songs/catalog.ts`: builds a catalog from the manifest and Vite asset URLs, fetching only the selected chart. `types.ts` and `audio-loader.ts` define runtime data and sequential selected-song decoding.
+- `scripts/prepare-song-assets.mjs`: copies referenced charts/media into the exclusively generated, ignored `public/songs` cache. Import, development, and build prepare this cache; original packages remain unchanged. Do not place original assets in this cache.
+- `src/songs/catalog.ts`: builds a catalog from the manifest and public asset URLs, fetching only the selected chart. `types.ts` and `audio-loader.ts` define runtime data and sequential selected-song decoding.
 - Gameplay receives normalized events; it does not depend on song names or folder titles.
 
 Only extraction is manual. ZIP and SNG containers are not imported directly. Nested folders and case-insensitive conventional file names are supported. MIDI takes precedence if both `notes.mid` and `notes.chart` exist, with a warning. INI metadata overrides chart metadata. Folder-derived IDs remain stable until a folder is renamed.

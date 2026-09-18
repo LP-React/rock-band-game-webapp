@@ -4,12 +4,13 @@
 
 Build a browser-based, guitar-only rock rhythm game as a React learning project, inspired by Clone Hero / Guitar Hero. Use five descending lanes and disc-shaped notes on a perspective highway.
 
-First-phase target: approximately five songs, per-song difficulties, synchronized audio, chords, sustains, streaks, score multipliers, boost, pause/restart, results, rock menus, audio/SFX settings, remappable keys, and optional per-song video. The user selected direct A/S/D/F/G keyboard play without a separate strum key. Additional instruments are outside scope; backend, multiplayer, accounts, and public uploads are not established requirements.
+First-phase target: per-song difficulties, synchronized audio, chords, sustains, streaks, score multipliers, boost, pause/restart, results, rock menus, audio/SFX settings, remappable keys, and optional per-song video. The user selected direct A/S/D/F/G keyboard play without a separate strum key. Future direction includes public release, SEO, GA4/Clarity, and synchronized versus rooms for up to four players; these integrations are not implemented. Additional instruments, accounts, and public uploads are not established requirements.
 
 ## Technical foundation
 
-- React, TypeScript, Vite, ESLint; pnpm with `pnpm-lock.yaml`.
-- `src/App.tsx`: home/catalog/game navigation and shared settings. `HomeScreen`, `SongCatalog`, `PreviewPlayer`, and `GameScreen` separate welcome, library browsing, audio samples, and engine lifecycle.
+- React, TypeScript, Next.js 16.3.5 App Router, ESLint; pnpm with `pnpm-lock.yaml`. Vite tooling has been removed.
+- `src/app/`: routes `/`, `/catalog`, and `/play/[id]/[difficulty]`, shared global CSS, Spanish HTML, metadata, and invalid-song/difficulty 404 handling. Home/catalog are prerendered; Canvas/Web Audio initialize only after mounting in the browser.
+- `src/App.tsx`: shared client session/settings provider, restoring localStorage after hydration without overwriting saved settings. `MenuRoutes.tsx` connects existing screens to Next navigation. `HomeScreen`, `SongCatalog`, `PreviewPlayer`, and `GameScreen` separate welcome, library browsing, audio samples, and engine lifecycle.
 - `src/components/SettingsPanel.tsx` and `src/game/settings.ts`: five unique key bindings, volume, visual scroll speed, and localStorage persistence.
 - `src/game/mechanics.ts`: sustain scoring/releases, boost phrases/energy, and health rules.
 - `src/songs/`: runtime types, generated-manifest catalog, and selected-song audio loading. `src/generated/songs/` holds reproducible derived charts/manifest; `src/musics/` holds unchanged original packages.
@@ -17,6 +18,7 @@ First-phase target: approximately five songs, per-song difficulties, synchronize
 - `src/game/renderer.ts`: Canvas 2D perspective highway/discs/tails/effects.
 - `src/game/demo-audio.ts` and `chart.ts`: isolated synthetic test fixture.
 - `scripts/import-songs.mjs` / `song-package.mjs`: generic folder discovery/import and error reporting. `midi-chart.mjs` / `text-chart.mjs`: MIDI and `.chart` five-fret lead-guitar adapters.
+- `scripts/prepare-song-assets.mjs`: validates inputs and copies only referenced charts/media into an exclusively generated `public/songs` cache, prepared on import/dev/build. Original `src/musics` packages and derived `src/generated/songs` remain canonical inputs; do not put originals in the ignored public cache. See [Next.js migration](next-migration.md).
 - PixiJS remains a proposed future renderer, not installed. MIDI parsing uses `midi-file` during import only; no MIDI parser runs in the browser.
 - See [song integration](song-integration.md), [game plan](game-plan.md), and [chart research](chart-research.md).
 - Selected compatibility direction: preserve community packages as canonical input; read extracted folders through generic MIDI/`.chart` adapters without per-song code. ZIP/SNG readers and local upload UI remain pending. Generated JSON is a reproducible derived cache, not a user-authored format. See [song architecture](song-architecture.md).
@@ -31,6 +33,8 @@ First-phase target: approximately five songs, per-song difficulties, synchronize
 | Lint | `pnpm lint` |
 | Test | `pnpm test` |
 | Preview build | `pnpm preview` |
+| Serve production | `pnpm start` |
+| Prepare public song assets | `pnpm assets:songs` |
 | Import all song folders | `pnpm import:songs` |
 | Legacy import alias | `pnpm import:dragonforce` |
 
@@ -49,7 +53,7 @@ First-phase target: approximately five songs, per-song difficulties, synchronize
 - The receptors sit near the bottom, with a faded highway entrance, enlarged score/streak beside the board, vertical health on the right, and boost energy on the left. A subtle boost-ready notice appears near the highway; activation is keyboard-only with Space.
 - Calibration, traditional HOPO/tap distinctions, open-note gameplay, video playback, and separate SFX volume remain pending. Generic extraction of ZIP/SNG is pending; extracted folders work. See [gameplay rules](gameplay-rules.md) for provisional scoring and health values.
 - The 140ms hit window and scoring/multiplier rules remain provisional. Input uses audio time at handler execution; hardware latency mapping is pending. Dense charts choose the closest eligible note in the pressed lane.
-- Validation: lint/build and 19 tests pass, including preview discovery/offsets and metadata normalization alongside parsing, audio, pause, and gameplay rules. Browser checked desktop and 390×844 catalog layouts, search, configuration, keyboard selection, dedicated DragonForce and fallback Faint previews, game start/pause, and return to the catalog. Full-song listening/latency, active boost visual playtesting, and cross-browser compatibility are not certified.
+- Validation: lint/build and 20 tests pass, including public-cache boundaries/source preservation alongside parsing, audio, pause, and gameplay rules. Next production browser checks cover desktop/390×844 catalog layouts, dedicated preview playback, DragonForce start/pause, return selection, and settings persistence after reload without hydration errors. HTTP checks confirm home/catalog content in initial HTML and invalid-song 404s. Full-song listening/latency, active boost visual playtesting, and cross-browser compatibility are not certified.
 - Import skips broken packages with a per-folder report; no-valid-song runs fail while preserving the previous catalog. Conventional names and codecs are documented in [song integration](song-integration.md); universal chart compatibility is not claimed.
 - Git is initialized locally. Follow the documented commit conventions; pushing/deployment requires an explicit request. Preserve supplied assets and the existing `parse-sng` dependency.
 - Unknowns: reference scoring/timing preset, future song assets, distribution rights, minimum browsers/devices, memory/performance baseline, and exact compatibility coverage/parser selection.

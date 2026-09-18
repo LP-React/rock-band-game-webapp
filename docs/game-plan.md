@@ -6,7 +6,7 @@ Status: proposed production direction with a Canvas 2D/Web Audio example playing
 
 | Responsibility | Recommendation | Reason |
 | --- | --- | --- |
-| Menus, catalog, settings, results | Existing React + TypeScript + Vite | Preserve the learning focus and tooling. |
+| Menus, catalog, settings, results | React + TypeScript + Next.js App Router | Preserve existing screens and engine while adding routed, prerendered public pages. |
 | Highway, notes, effects | PixiJS mounted through a React component | Dedicated canvas rendering with perspective projection for a 2.5D highway. |
 | Audio transport/mixing | Native Web Audio API | Schedule synchronized stems and control guitar gain separately. |
 | Gameplay rules | Independent TypeScript modules | Test judgment/scoring without React or graphics. |

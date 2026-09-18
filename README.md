@@ -1,6 +1,6 @@
 # Riff Lab
 
-A React learning project for a browser-based, five-color guitar rhythm game inspired by Guitar Hero and Clone Hero.
+A React learning project using Next.js App Router for a browser-based, five-color guitar rhythm game inspired by Guitar Hero and Clone Hero.
 
 The current catalog includes eight songs from Dragonforce, Cole Rolland, Linkin Park, Imperial Circus Dead Decadence, and Linked Horizon. Original community maps provide the notes and difficulties. A/S/D/F/G are the default color keys; no separate strum is required. Hold long notes to score tails. Complete starred phrases and press Space with half a bar for boost. Escape pauses/resumes without resetting progress; losing focus pauses automatically.
 
@@ -23,14 +23,16 @@ ZIP/SNG extraction, video playback, calibration, and separate SFX volume remain 
 
 ## Development
 
-Use pnpm with the existing lockfile and a Node runtime compatible with the installed Vite version.
+Use pnpm with the existing lockfile and a Node runtime compatible with Next.js 16 (Node 20.9 or newer).
 
 - `pnpm install`: install dependencies.
-- `pnpm dev`: run locally.
+- `pnpm dev`: prepare song assets and run Next.js at `http://127.0.0.1:5173`.
 - `pnpm build`: type check and build.
 - `pnpm lint`: lint.
 - `pnpm test`: test parsing, import, and mocked gameplay/audio.
-- `pnpm preview`: preview the build.
+- `pnpm preview`: serve the production build locally after `pnpm build`.
+- `pnpm start`: serve the production build with Next.js defaults.
+- `pnpm assets:songs`: regenerate the public song-file cache without reparsing charts.
 - `pnpm import:songs`: regenerate catalog/chart data from original folders.
 - `pnpm import:dragonforce`: compatibility alias for `import:songs`.
 
@@ -40,5 +42,6 @@ Use pnpm with the existing lockfile and a Node runtime compatible with the insta
 - [Project context](docs/project-context.md)
 - [Song integration](docs/song-integration.md)
 - [Song architecture](docs/song-architecture.md)
+- [Next.js migration](docs/next-migration.md)
 - [Gameplay rules](docs/gameplay-rules.md)
 - [Commit conventions](docs/commit-conventions.md)
