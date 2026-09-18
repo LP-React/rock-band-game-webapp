@@ -3,12 +3,14 @@ import type { RefObject } from 'react'
 import { songs } from '../songs/catalog'
 import { menuLevels } from '../game/menu-audio'
 import { fallbackTheme } from '../songs/presentation'
+import { MenuFade } from '../game/menu-fade'
 
 export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange }: { volume: number; onVolumeChange: (volume: number) => void; canvas: RefObject<HTMLCanvasElement | null>; index: number; onSongChange: (index: number) => void }) {
   const [playing, setPlaying] = useState(true), [error, setError] = useState('')
   const [muted, setMuted] = useState(true)
   const [autoStart, setAutoStart] = useState(true)
   const audio = useRef<HTMLAudioElement>(null)
+  const fade = useRef<MenuFade | null>(null)
   const graph = useRef<{ context: AudioContext; analyser: AnalyserNode } | null>(null)
   const continuePlaying = useRef(true), levels = useRef<Float32Array>(new Float32Array())
   const silentClock = useRef<{ started: number | null; time: number }>({ started: null, time: 0 })
@@ -24,7 +26,11 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
     ringColor.current = (song.theme ?? fallbackTheme).selection
     redraw.current?.()
   }, [song.theme])
-  useEffect(() => { if (audio.current) audio.current.volume = volume / 100 }, [volume])
+  useEffect(() => {
+    fade.current = new MenuFade(audio.current!)
+    return () => fade.current?.cancel()
+  }, [])
+  useEffect(() => { fade.current?.setVolume(volume) }, [volume])
   useEffect(() => {
     const controller = new AbortController()
     levels.current = new Float32Array()
@@ -97,6 +103,7 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
     }
   }, [canvas])
   async function play(audible = !audio.current!.muted) {
+    fade.current?.cancel()
     continuePlaying.current = true
     if (silentClock.current.started === null) silentClock.current.started = performance.now()
     setPlaying(true)
@@ -112,7 +119,7 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
         if (audio.current!.paused && audio.current!.readyState >= 1) audio.current!.currentTime = silentTime()
         await graph.current!.context.resume(); audio.current!.muted = false; setMuted(false)
       }
-      await audio.current!.play(); setError('')
+      await audio.current!.play(); void fade.current?.to(1, 450); setError('')
     } catch (error) {
       if (audible && !(error instanceof DOMException && error.name === 'AbortError')) {
         audio.current!.muted = true; setMuted(true); redraw.current?.()
@@ -120,15 +127,21 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
       }
     }
   }
-  function pause() {
+  async function pause() {
     silentClock.current = { started: null, time: audio.current!.paused ? silentTime() : audio.current!.currentTime }
     continuePlaying.current = false
-    audio.current!.pause(); setPlaying(false); redraw.current?.()
+    setPlaying(false)
+    if (await fade.current?.to(0, 250)) { audio.current!.pause(); redraw.current?.() }
   }
-  function change(step: number) {
+  async function change(step: number) {
     continuePlaying.current = playing
     setAutoStart(continuePlaying.current)
+    if (!await fade.current?.to(0, 220)) return
     audio.current!.pause(); setError(''); onSongChange((index + step + songs.length) % songs.length)
+  }
+  async function mute() {
+    if (!await fade.current?.to(0, 220)) return
+    audio.current!.muted = true; setMuted(true)
   }
   return <div className="home-music" aria-label="Reproductor del menú">
     <audio ref={audio} src={song.preview} preload="auto" loop muted={muted} autoPlay={autoStart} playsInline onLoadedMetadata={() => { const player = audio.current!; player.currentTime = Math.max(0, Math.min(song.previewStart ?? 0, Math.max(0, player.duration - 1))); if (continuePlaying.current) void play() }} onPlay={() => setPlaying(true)} onPause={() => { if (!continuePlaying.current) setPlaying(false) }} onError={() => { pause(); setError('Audio no disponible. Prueba otra canción.') }} />
@@ -138,7 +151,7 @@ export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange 
     <div className="home-player-actions">
       <div className="home-music-controls"><button aria-label="Canción anterior" onClick={() => change(-1)}>⏮</button><button className="music-toggle" aria-label={playing ? 'Pausar música' : 'Reproducir música'} onClick={() => { if (playing) pause(); else void play() }}>{playing ? 'Ⅱ' : '▶'}</button><button aria-label="Siguiente canción" onClick={() => change(1)}>⏭</button></div>
       <div className="home-volume">
-        <button className="music-volume-toggle" aria-label={muted ? 'Activar sonido' : 'Silenciar música'} title={muted ? 'Activar sonido' : 'Silenciar música'} aria-pressed={!muted} onClick={() => { if (muted) void play(true); else { audio.current!.muted = true; setMuted(true) } }}>
+        <button className="music-volume-toggle" aria-label={muted ? 'Activar sonido' : 'Silenciar música'} title={muted ? 'Activar sonido' : 'Silenciar música'} aria-pressed={!muted} onClick={() => { if (muted) void play(true); else void mute() }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 4 6 8H3v8h3l5 4Z" />{muted || volume === 0 ? <path d="m16 9 6 6m0-6-6 6" /> : <><path d="M15 8a6 6 0 0 1 0 8" /><path d="M18 5a10 10 0 0 1 0 14" /></>}</svg>
         </button>
         <div className="home-volume-panel"><label>Volumen <span>{volume}%</span><input type="range" min="0" max="100" value={volume} aria-label="Volumen de la música" onChange={event => onVolumeChange(Number(event.target.value))} /></label></div>
