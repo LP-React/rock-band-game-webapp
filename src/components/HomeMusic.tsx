@@ -24,33 +24,39 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
     const surface = canvas.current!, painter = surface.getContext('2d')!
     const reduced = matchMedia('(prefers-reduced-motion: reduce)')
     const data = new Uint8Array(128)
-    let frame = 0
+    let frame = 0, previousLevel = 0, impact = 0
     let disposed = false
     function draw() {
       cancelAnimationFrame(frame)
       const analyser = graph.current?.analyser
       const silentLevel = levels.current[Math.floor(player.currentTime * 20)] ?? 0
+      impact = player.paused || reduced.matches ? 0 : Math.max(impact * .86, Math.max(0, silentLevel - previousLevel) * 3)
+      previousLevel = silentLevel
       if (analyser && !player.paused && !player.muted) analyser.getByteFrequencyData(data)
       else data.fill(player.paused ? 0 : silentLevel * 210)
-      const pulse = player.paused || reduced.matches ? 0 : silentLevel ** 2 * .055
+      const pulse = player.paused || reduced.matches ? 0 : silentLevel ** 3 * .06 + Math.min(1, impact) * .045
       surface.parentElement!.style.setProperty('--record-pulse', String(1 + pulse))
       painter.clearRect(0, 0, 600, 600)
       painter.strokeStyle = '#ffe5c3'; painter.lineWidth = 2
       painter.beginPath()
       for (let i = 0; i <= 96; i++) {
         const angle = i / 96 * Math.PI * 2
-        const energy = reduced.matches ? 0 : data[4 + Math.min(i % 48, 47 - i % 48)] / 255
-        const radius = 237 + energy * 38
+        const frequency = 4 + Math.min(i % 48, 47 - i % 48)
+        const level = data[frequency] / 255
+        const envelope = .25 + .75 * Math.abs(Math.sin(i / 96 * Math.PI * 8))
+        const energy = reduced.matches ? 0 : Math.min(1, Math.max(0, (level - .2) / .8) ** 2 * 1.4 + impact * envelope)
+        const radius = 237 + energy * 52
         const x = 300 + Math.cos(angle) * radius, y = 300 + Math.sin(angle) * radius
         if (i === 0) painter.moveTo(x, y); else painter.lineTo(x, y)
       }
       painter.closePath(); painter.globalAlpha = .8; painter.stroke()
       for (let i = 0; i < 96; i++) {
         const angle = i / 96 * Math.PI * 2
-        const energy = reduced.matches ? 0 : data[4 + i % 48] / 255
-        painter.globalAlpha = .15 + energy * .7
+        const level = data[4 + i % 48] / 255
+        const energy = reduced.matches ? 0 : Math.min(1, level ** 3 * 1.4 + impact * Math.abs(Math.sin(i / 96 * Math.PI * 8)))
+        painter.globalAlpha = .15 + energy * .85
         painter.beginPath(); painter.moveTo(300 + Math.cos(angle) * 246, 300 + Math.sin(angle) * 246)
-        painter.lineTo(300 + Math.cos(angle) * (250 + energy * 38), 300 + Math.sin(angle) * (250 + energy * 38)); painter.stroke()
+        painter.lineTo(300 + Math.cos(angle) * (250 + energy * 44), 300 + Math.sin(angle) * (250 + energy * 44)); painter.stroke()
       }
       if (!player.paused && !reduced.matches && !document.hidden) frame = requestAnimationFrame(draw)
     }
@@ -72,7 +78,7 @@ export function HomeMusic({ volume, canvas }: { volume: number; canvas: RefObjec
     try {
       if (audible && !graph.current) {
         const context = new AudioContext(), analyser = context.createAnalyser()
-        analyser.fftSize = 256; analyser.smoothingTimeConstant = .85
+        analyser.fftSize = 256; analyser.smoothingTimeConstant = .55
         context.createMediaElementSource(audio.current!).connect(analyser); analyser.connect(context.destination)
         graph.current = { context, analyser }
       }

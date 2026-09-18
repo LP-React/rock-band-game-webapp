@@ -60,6 +60,16 @@
 .friends-mode { background:#342a36; color:#b9adb9; opacity:.75; }
 .home-screen .friends-mode:disabled { opacity:.85; }
 .home-screen .config-ribbon:hover:not(:disabled) { background:color-mix(in srgb,var(--panel) 80%,var(--accent)); }
+@media(min-width:761px) {
+  .home-screen .home-arena { --home-disc:min(410px,36vw,61vh); grid-template-columns:var(--home-disc) minmax(0,1fr); }
+  .home-screen .hero-record { width:var(--home-disc); }
+  .home-screen .home-navigation { margin-left:-80px; }
+  .home-screen .menu-ribbon { padding-left:115px; }
+  .home-screen .play-modes { margin-left:0; }
+  .home-screen .mode-option { border-radius:0 45px 45px 0; padding-left:115px; }
+  .home-screen .mode-back { margin-left:115px; }
+}
+@media(max-height:650px) and (min-width:761px) { .home-screen .home-arena { --home-disc:min(360px,34vw,49vh); } }
 .mode-back,.help-button { background:transparent; border:1px solid #fff3; padding:9px 16px; border-radius:20px; font-size:14px; color:#e9dfeb; }
 .mode-back { margin-top:6px; }
 .help-button span { display:inline-grid; place-items:center; border:1px solid #fff5; border-radius:50%; width:20px; height:20px; margin-left:8px; }
