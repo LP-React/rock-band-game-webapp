@@ -14,7 +14,7 @@ export function drawHighway(state: RenderState) {
     const ambient = c.createRadialGradient(w * .5, h * .3, 10, w * .5, h * .5, w * .6)
     ambient.addColorStop(0, state.mechanics.boost ? '#07506b' : '#242033'); ambient.addColorStop(1, '#07090d')
     c.fillStyle = ambient; c.fillRect(0, 0, w, h)
-    const near = Math.min(w * .70, h * 1.12), top = h * .08, bottom = h * 1.04, hit = .96
+    const near = Math.min(w * .70, h * 1.12), top = h * .08, bottom = h * 1.04, hit = .94
     const point = (lane: number, depth: number) => {
       const scale = .25 / (1 - .75 * depth)
       return { x: w / 2 + (lane / 5 - .5) * near * scale, y: top + (bottom - top) * (scale - .25) / .75, width: near * scale / 5 }
