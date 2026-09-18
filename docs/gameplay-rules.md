@@ -2,6 +2,8 @@
 
 These values are provisional for direct keyboard play, not a claim of exact Guitar Hero or Clone Hero parity.
 
+Original open notes are retained in the imported data but filtered from current play by user choice. They neither appear nor count as misses; their gameplay and input remain pending. Boost evaluates the remaining colored notes. Songs with only a full mixed recording keep their audio on misses because there is no isolated guitar stem to attenuate.
+
 - Five configurable color keys; default A/S/D/F/G. Each note needs a fresh press. Chords need every matching color within the ±140ms hit window. Key repeat does not hit future notes.
 - Completed heads score 50 points per colored note. Base multiplier rises every 10 completed groups, capped at 4×. Misses reset the streak and attenuate the synchronized guitar stem; completed groups restore it.
 - Sustains longer than 80ms of remaining hold time score 10 points per second per lane, multiplied by the current base multiplier and boost. Releasing more than 40ms before the tail ends breaks the streak, reduces health, and attenuates guitar. Incomplete expired chords cancel their active tails.

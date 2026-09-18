@@ -1,45 +1,49 @@
 # Song integration
 
-The current offline JSON import is a prototype implementation. The selected direction is to read original community packages through generic adapters without requiring new song files; see [song architecture](song-architecture.md).
+## Adding songs
 
-## Selected source
+1. Extract a downloaded song folder anywhere under `src/musics`, preserving its original files.
+2. Run `pnpm import:songs` from the project root.
+3. Run `pnpm dev`, or refresh the running game. Select the song and an available difficulty.
 
-Use the extracted `src/musics/Dragonforce - Through The Fire & Flames (Neversoft)` folder supplied by the user. It has `album.jpg`, `notes.mid`, `song.ini`, `song.opus`, `guitar.opus`, `preview.opus`, and `desktop.ini`. A ZIP archive itself is not present; its extracted folder is.
+No song-specific code or authored maps are required for supported packages. Rerun import after adding, removing, renaming, or editing a package. `pnpm import:dragonforce` remains a compatibility alias for importing all folders.
 
-The sibling SNG declares the same six asset files (INI metadata is stored in its header). SHA-256 comparison of every streamed SNG file against the extracted counterpart confirmed identical bytes. The folder avoids runtime container extraction and keeps chart/audio inspection straightforward. The original files and SNG are preserved. `desktop.ini` is not game data; preview audio is not yet used.
+## Separation
 
-## Data flow and separation
+- `src/musics`: canonical original packages; never rewritten by import.
+- `scripts/song-package.mjs`: recursive discovery, INI metadata, conventional media discovery, validation, per-folder error isolation.
+- `scripts/midi-chart.mjs` / `text-chart.mjs`: original MIDI or text-chart ticks converted to audio-origin seconds, chords, sustains, beats, and boost phrases.
+- `src/generated/songs`: reproducible derived JSON plus `manifest.json`, separated from application code. These artifacts are checked in so a fresh checkout can build; users never supply this format.
+- `src/songs/catalog.ts`: builds a catalog from the manifest and Vite asset URLs, fetching only the selected chart. `types.ts` and `audio-loader.ts` define runtime data and sequential selected-song decoding.
+- Gameplay receives normalized events; it does not depend on song names or folder titles.
 
-1. `scripts/midi-chart.mjs` parses format-1 MIDI with `midi-file`, accumulates absolute ticks, builds a tempo timeline, pairs note-on/off (including zero-velocity note-on releases), and converts tick positions into seconds.
-2. `scripts/import-dragonforce.mjs` reads this folder's INI, applies delay and sustain cutoff, strips markup from the charter display name, and writes normalized chart JSON and small metadata JSON. Run `pnpm import:dragonforce` after changing source chart/metadata. Outputs are data artifacts required by the application, not compiled build output.
-3. `src/songs/types.ts` defines the normalized song contract. `catalog.ts` references Vite asset URLs and fetches chart JSON separately from JavaScript.
-4. `src/songs/audio-loader.ts` fetches/decodes accompaniment and guitar sequentially, reports unsupported decoding, and checks their duration agreement.
-5. `src/game/prototype.ts` orchestrates playback and direct-key judgment independently of the React screen. Both decoded stems are scheduled against one shared audio start time. Misses lower guitar gain without restarting it.
-6. `src/game/renderer.ts` draws notes and beat lines using song time and the imported tempo-derived beats. `demo-audio.ts` isolates the old synthetic fixture used by engine tests.
+Only extraction is manual. ZIP and SNG containers are not imported directly. Nested folders and case-insensitive conventional file names are supported. MIDI takes precedence if both `notes.mid` and `notes.chart` exist, with a warning. INI metadata overrides chart metadata. Folder-derived IDs remain stable until a folder is renamed.
 
-The internal chart schema is version 1. A note group has `time` in audio-origin seconds, `lanes` numbered 0-4, and `durations` aligned with those lanes. Notes with the same MIDI tick form a group; different difficulty ranges form separate charts. Imported guitar modifier pitches are not rendered as colored notes.
+## Supported content and limits
 
-## Actual imported data
+Five-fret lead guitar MIDI (`PART GUITAR` / `T1 GEMS`, format 1) and `.chart` (`EasySingle` through `ExpertSingle`) are supported within the current direct-key rules. Only actual colored difficulties are listed. `.chart` BPM changes, offset, per-lane sustain lengths, chords, and per-difficulty Star Power `S 2` phrases are read. MIDI pitch 116 supplies shared phrases. HOPO/tap modifiers retain the game's direct-key behavior; other instruments are ignored. Tempo anchors and unknown text-chart guitar note types are rejected rather than silently mapped.
 
-| Difficulty | Groups | Colored notes |
-| --- | --- | --- |
-| Easy | 1102 | 1103 |
-| Medium | 1823 | 1900 |
-| Hard | 2723 | 2835 |
-| Expert | 3722 | 3916 |
+Per the user's decision, open notes are preserved in generated chart data, but filtered from gameplay. They neither appear nor cause misses. The game and command report this limitation; no sixth input is introduced. Boost currently evaluates the remaining colored notes.
 
-Metadata duration is 442.363 seconds. Runtime end uses decoded audio duration rather than trusting metadata alone. MIDI resolution is 480 ticks/quarter; there are 775 tempo events; the first note is at 2.414 seconds. All difficulty patterns come from the package rather than automatic simplification. No chart/audio offset was invented; this INI has no delay field, so zero is used.
+Audio discovery recognizes conventional song/guitar/rhythm/bass/keys/drums/vocals/crowd stems in Opus, Ogg, MP3, WAV, or FLAC. Multiple encodings for the same role produce an error. Numbered drum stems take precedence over a combined drum stem. Codec decoding still depends on the browser; naming a supported extension does not certify every encoding. Referenced nonstandard stream names are pending. Stems of unequal length start at the same audio origin; attempt length uses the longest decoded stem.
 
-## Limits and next steps
+Independent guitar attenuation requires a guitar stem plus another stem. Single full mixes remain audible on misses. Album artwork is optional with a fallback. Preview and background video playback remain pending; originals are preserved, and video discovery emits a warning. Decoded audio memory/performance still needs measurement; only the selected song is cached.
 
-This is a local example integration, not generic SNG/ZIP upload support or complete Clone Hero compatibility. Sustain lengths drive hold/release judgment and time-based scoring. MIDI pitch 116 supplies 25 Star Power phrases as `boostPhrases` with start/end times; successful phrases charge boost. HOPO/strum markers do not change direct-key controls. Future imports must explicitly handle unsupported open notes/SysEx modifiers before claiming universal compatibility. See [gameplay rules](gameplay-rules.md).
+Bad folders are listed in the command report and manifest without blocking valid folders. If no valid songs remain, import exits with an error and preserves the previous generated catalog. Old generated hash-named charts are removed only after a successful catalog write. Import does not certify universal Clone Hero compatibility.
 
-Decoded full-song buffers consume much more RAM than the approximately 8.8 MB of compressed stems. Only the current song is cached, but streaming/chunked transport or a memory budget needs evaluation before a larger catalog or mobile support. Fetching is sequential to avoid simultaneous compressed-data allocations. No background video is included in this package/integration.
+## Supplied packages validated
 
-Validation: nine tests cover tempo conversion, delay, note releases, durations, imported counts/boost phrases, keyboard canvas focus, direct-key windows, chords, wrong colors, repeat suppression, restart, sustains, boost charging/drain, and remapping. Build/lint pass; chart JSON is a separate asset. Browser verified actual Opus decode/start, rendering, stop, difficulty selection, settings, and responsive layout. Listening quality and full-song synchronization over several minutes still need device playtesting.
+| Song | Source | Difficulty groups | Pending open groups | Audio |
+| --- | --- | --- | --- | --- |
+| Through The Fire & Flames / Dragonforce | MIDI | Easy 1102; Medium 1823; Hard 2723; Expert 3722 | 0 | Accompaniment + guitar |
+| Numb (Linkin Park Cover) / Cole Rolland | `.chart` | Expert 591 imported / 495 playable | 96 | Full mix |
+| Faint / Linkin Park | `.chart` | Expert 525 | 0 | Full mix |
+| Given Up / Linkin Park | `.chart` | Expert 507 imported / 348 playable | 159 | Full mix |
+
+Validation covers original counts, tempo changes, offsets, extended sustains, phrase parsing, open-note preservation, missing files, nested/case-insensitive discovery, ambiguous audio, mixed/separated routing, and decoding errors. Browser checked selection/difficulties, actual Opus decoding/start, and pause for all four songs. Full-length listening, latency, and broad package/browser compatibility remain unverified.
 
 ## References
 
-- [MIDI five-fret track conventions](https://thenathannator.github.io/GuitarGame_ChartFormats/Chart-File-Formats/mid-format/Tracks/5-Fret-Guitar/)
-- [SNG format specification](https://github.com/mdsitton/SngFileFormat)
-- [midi-file parser](https://github.com/carter-thaxton/midi-file)
+- [Chart five-fret conventions](https://thenathannator.github.io/GuitarGame_ChartFormats/Chart-File-Formats/chart-format/Tracks/5-Fret-Guitar/)
+- [Supported audio names](https://thenathannator.github.io/GuitarGame_ChartFormats/Chart-File-Formats/Supported-Audio-Files/)
+- [MIDI five-fret conventions](https://thenathannator.github.io/GuitarGame_ChartFormats/Chart-File-Formats/mid-format/Tracks/5-Fret-Guitar/)

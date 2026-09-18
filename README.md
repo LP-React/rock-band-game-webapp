@@ -1,14 +1,23 @@
 # Riff Lab
 
-A React learning project for a browser-based guitar rhythm game inspired by Guitar Hero and Clone Hero.
+A React learning project for a browser-based, five-color guitar rhythm game inspired by Guitar Hero and Clone Hero.
 
-The current example plays the user-supplied Dragonforce / Through The Fire & Flames package, with four original MIDI guitar difficulties, album artwork, and separate accompaniment/guitar Opus audio. Press A/S/D/F/G when notes reach the line. No space/strum is required. Chords require each matching key; misses mute guitar and completed groups restore it. Pause/resume, restart, and volume are available; losing focus pauses play.
+The current catalog includes Dragonforce / Through The Fire & Flames, Cole Rolland / Numb (Linkin Park Cover), and Linkin Park / Faint and Given Up. Original community maps provide the notes and difficulties. A/S/D/F/G are the default color keys; no separate strum is required. Hold long notes to score tails. Complete starred phrases and press Space with half a bar for boost. Escape pauses/resumes without resetting progress; losing focus pauses automatically.
 
-The full-viewport Canvas 2D game draws perspective disc notes, glowing sustain tails, and hit sparks. Hold long notes to score their tails. Complete starred phrases to charge boost, then press Space with at least half a bar for double scoring and cyan effects. Health reaching zero ends the attempt. Configuration offers five remappable keys and visual scroll speed; settings persist locally. Music volume is adjustable during play, and a fullscreen button is available.
+The full-viewport Canvas 2D highway includes perspective discs, sparks, a faded entrance, enlarged score/streak, vertical health, and a boost-ready notice. Configuration offers five remappable keys and visual speed; settings persist locally. Volume is adjustable during play. Fullscreen is available. Separate guitar stems support attenuation on misses; full mixes continue playing. Open notes are retained in imported data but excluded from current gameplay by user choice.
 
-Escape pauses and resumes at the same song position without resetting progress. Losing focus pauses automatically. Rehold any ongoing sustain before continuing. The highway has a faded entrance, lower receptors, enlarged score/streak, vertical health, and a subtle boost-ready notice. Boost is activated with Space.
+## Add songs
 
-Calibration, video, separate SFX volume, preview playback, and a multi-song menu remain pending. Timing/scoring rules are provisional; see [gameplay rules](docs/gameplay-rules.md).
+Extract each song under `src/musics`, preserving its files, then run:
+
+```sh
+pnpm import:songs
+pnpm dev
+```
+
+Choose the song from the game selector. No per-song catalog edits are needed for supported folders. The command reads MIDI or `.chart`, metadata, difficulties, and conventional audio/artwork, reports unsupported/broken packages, and generates a reproducible catalog in `src/generated/songs`. Original files stay unchanged. Rerun after changing song folders. See [song integration](docs/song-integration.md) for compatibility limits.
+
+ZIP/SNG extraction, preview/video playback, calibration, separate SFX volume, and a dedicated song-menu screen remain pending. Timing/scoring rules are provisional; see [gameplay rules](docs/gameplay-rules.md).
 
 ## Development
 
@@ -18,15 +27,16 @@ Use pnpm with the existing lockfile and a Node runtime compatible with the insta
 - `pnpm dev`: run locally.
 - `pnpm build`: type check and build.
 - `pnpm lint`: lint.
-- `pnpm test`: test conversion and mocked gameplay/audio.
+- `pnpm test`: test parsing, import, and mocked gameplay/audio.
 - `pnpm preview`: preview the build.
-- `pnpm import:dragonforce`: regenerate normalized chart/metadata from the supplied MIDI/INI.
+- `pnpm import:songs`: regenerate catalog/chart data from original folders.
+- `pnpm import:dragonforce`: compatibility alias for `import:songs`.
 
 ## Documentation
 
 - [Agent instructions](AGENTS.md)
 - [Project context](docs/project-context.md)
 - [Song integration](docs/song-integration.md)
-- [Game plan](docs/game-plan.md)
-- [Chart research](docs/chart-research.md)
+- [Song architecture](docs/song-architecture.md)
+- [Gameplay rules](docs/gameplay-rules.md)
 - [Commit conventions](docs/commit-conventions.md)

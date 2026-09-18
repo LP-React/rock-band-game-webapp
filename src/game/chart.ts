@@ -1,4 +1,4 @@
-export interface ChartNote { time: number; lanes: number[]; durations?: number[] }
+export interface ChartNote { time: number; lanes: number[]; durations?: number[]; open?: boolean; openDuration?: number }
 export const DURATION = 20
 export const HIT_WINDOW = 0.14 // Prototype value, not a Clone Hero specification.
 const pattern = [[0], [0], [1], [2], [0], [3], [2], [1], [0, 2], [1], [3], [4], [2, 4], [3], [1], [0]]

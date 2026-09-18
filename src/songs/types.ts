@@ -10,7 +10,12 @@ export interface Song {
   charts: Partial<Record<Difficulty, ChartNote[]>>
   beats: number[]
   boostPhrases?: { start: number; end: number }[]
+  boostByDifficulty?: Partial<Record<Difficulty, { start: number; end: number }[]>>
   artwork: string
-  backing: string
-  guitar: string
+  backing?: string
+  guitar?: string
+  stems?: { url: string; guitar: boolean }[]
+  reactiveGuitar?: boolean
+  warnings?: string[]
+  openNotes?: number
 }

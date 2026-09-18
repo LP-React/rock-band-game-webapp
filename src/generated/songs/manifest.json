@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "songs": [
+    {
+      "id": "edf3a66ed264dbee",
+      "title": "Numb (Linkin Park Cover)",
+      "artist": "Cole Rolland",
+      "album": "Numb (Linkin Park Cover) Single",
+      "charter": "R.Bayu.F & Nephilim",
+      "duration": 185.256,
+      "artwork": "Cole Rolland - Numb (Linkin Park Cover) (R.Bayu.F & Nephilim)/album.jpg",
+      "stems": [
+        {
+          "path": "Cole Rolland - Numb (Linkin Park Cover) (R.Bayu.F & Nephilim)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 96,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "96 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently",
+        "Background video found; playback is not implemented yet"
+      ]
+    },
+    {
+      "id": "f1c9ae560ca390a8",
+      "title": "Through The Fire & Flames",
+      "artist": "Dragonforce",
+      "album": "Inhuman Rampage",
+      "charter": "Neversoft",
+      "duration": 442.363,
+      "artwork": "Dragonforce - Through The Fire & Flames (Neversoft)/album.jpg",
+      "stems": [
+        {
+          "path": "Dragonforce - Through The Fire & Flames (Neversoft)/song.opus",
+          "guitar": false
+        },
+        {
+          "path": "Dragonforce - Through The Fire & Flames (Neversoft)/guitar.opus",
+          "guitar": true
+        }
+      ],
+      "reactiveGuitar": true,
+      "openNotes": 0,
+      "difficulties": [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ],
+      "warnings": []
+    },
+    {
+      "id": "f2507e5315d8ed44",
+      "title": "Faint",
+      "artist": "Linkin Park",
+      "album": "Meteora",
+      "charter": "heather",
+      "duration": 164.6,
+      "artwork": "Linkin Park - Faint (heather)/album.jpg",
+      "stems": [
+        {
+          "path": "Linkin Park - Faint (heather)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 0,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "HOPO/tap modifiers use direct-key controls",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    },
+    {
+      "id": "457466031ad2513d",
+      "title": "Given Up",
+      "artist": "Linkin Park",
+      "album": "Minutes to Midnight",
+      "charter": "heather",
+      "duration": 189.29,
+      "artwork": "Linkin Park - Given Up (heather)/album.jpg",
+      "stems": [
+        {
+          "path": "Linkin Park - Given Up (heather)/song.opus",
+          "guitar": false
+        }
+      ],
+      "reactiveGuitar": false,
+      "openNotes": 159,
+      "difficulties": [
+        "expert"
+      ],
+      "warnings": [
+        "159 open notes preserved in chart data but excluded from current five-color gameplay",
+        "Mixed audio: guitar cannot be muted independently"
+      ]
+    }
+  ],
+  "errors": []
+}

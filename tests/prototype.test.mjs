@@ -18,6 +18,7 @@ async function moduleUrl(path) {
 const { Prototype } = await import(await moduleUrl('../src/game/prototype.ts'))
 const { Mechanics } = await import(await moduleUrl('../src/game/mechanics.ts'))
 const { validKeys } = await import(await moduleUrl('../src/game/settings.ts'))
+const { loadSongAudio } = await import(await moduleUrl('../src/songs/audio-loader.ts'))
 
 class Element { tagName = 'CANVAS' }
 class Audio {
@@ -34,7 +35,7 @@ class Audio {
   }
   createBuffer(_, length) { const samples = new Float32Array(length); return { getChannelData: () => samples } }
   createBufferSource() {
-    const node = { connect() {}, disconnect() {}, start(time, offset) { this.time = time; this.offset = offset }, stop() { this.stopped = true } }
+    const node = { connect(destination) { this.destination = destination }, disconnect() {}, start(time, offset) { this.time = time; this.offset = offset }, stop() { this.stopped = true } }
     this.sources.push(node)
     return node
   }
@@ -223,4 +224,37 @@ test('remapped keyboard input hits and original bindings no longer trigger', asy
   press(game, 'KeyQ')
   assert.equal(game.score, 50)
   game.destroy()
+})
+
+test('mixed audio bypasses guitar attenuation; discovered stems route guitar independently', async () => {
+  const game = new Prototype(canvas(), () => {})
+  const mixed = { id: 'mixed', duration: 20, charts: { expert: [{ time: 2, lanes: [0] }] }, beats: [], stems: [{ url: 'song', guitar: false }], reactiveGuitar: false }
+  game.songId = mixed.id; game.buffers = [{ duration: 20 }]
+  await game.start(.5, mixed, 'expert')
+  assert.equal(game.sources.length, 1)
+  assert.equal(game.sources[0].destination, game.master)
+  game.audio.currentTime = game.started + 2
+  press(game, 'KeyS')
+  assert.equal(game.guitar.gain.value, 0)
+  assert.equal(game.master.gain.value, .5)
+  const separated = { ...mixed, id: 'separated', reactiveGuitar: true, stems: [{ url: 'song', guitar: false }, { url: 'guitar', guitar: true }, { url: 'bass', guitar: false }] }
+  game.songId = separated.id; game.buffers = [{ duration: 20 }, { duration: 19 }, { duration: 20 }]
+  await game.start(.5, separated, 'expert')
+  assert.equal(game.sources[1].destination, game.guitar)
+  assert.equal(game.sources[2].destination, game.master)
+  assert.equal(game.sources[0].time, game.sources[2].time)
+  game.destroy()
+})
+
+test('audio loader accepts single mixes and stems of different lengths, reports decoding errors', async () => {
+  const original = globalThis.fetch, requested = []
+  globalThis.fetch = async url => { requested.push(url); return { ok: true, arrayBuffer: async () => new ArrayBuffer(1) } }
+  try {
+    const audio = { decodeAudioData: async () => ({ duration: requested.length === 1 ? 20 : 19 }) }
+    assert.equal((await loadSongAudio(audio, { stems: [{url: 'song', guitar: false}] })).length, 1)
+    requested.length = 0
+    assert.equal((await loadSongAudio(audio, { stems: [{url: 'song', guitar: false}, {url: 'guitar', guitar: true}] })).length, 2)
+    assert.deepEqual(requested, ['song', 'guitar'])
+    await assert.rejects(() => loadSongAudio({decodeAudioData: async () => {throw new Error()}}, {stems: [{url: 'bad', guitar: false}]}), /decodificar/)
+  } finally { globalThis.fetch = original }
 })

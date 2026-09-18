@@ -15,6 +15,8 @@ export class Prototype {
   private guitar?: GainNode
   private sources: AudioBufferSourceNode[] = []
   private buffers?: AudioBuffer[]
+  private stemGuitar: boolean[] = [false, true]
+  private reactiveGuitar = true
   private songId = 'demo'
   private notes = chart
   private mechanics = new Mechanics()
@@ -58,7 +60,7 @@ export class Prototype {
     this.sources = this.buffers!.map((buffer, index) => {
       const source = this.audio!.createBufferSource()
       source.buffer = buffer
-      source.connect(index === 0 ? this.master! : this.guitar!)
+      source.connect(this.stemGuitar[index] ? this.guitar! : this.master!)
       source.start(when, offset)
       return source
     })
@@ -90,7 +92,7 @@ export class Prototype {
     const notes = song.charts[difficulty]
     if (!notes) throw new Error('La canción no contiene esta dificultad.')
     this.notes = notes; this.beats = song.beats; this.duration = song.duration
-    this.phrases = song.boostPhrases ?? []; this.mechanics = new Mechanics()
+    this.phrases = song.boostByDifficulty?.[difficulty] ?? song.boostPhrases ?? []; this.mechanics = new Mechanics()
     this.judged.clear(); this.pressed.clear(); this.flashes.fill(0)
     this.score = 0; this.streak = 0
     this.notify('Listo para tocar', false)
@@ -116,10 +118,12 @@ export class Prototype {
       this.buffers = buffers
     }
     this.notes = song?.charts[difficulty] ?? chart
+    this.stemGuitar = song?.stems?.map(stem => stem.guitar) ?? [false, true]
+    this.reactiveGuitar = song?.reactiveGuitar ?? true
     if (song && !song.charts[difficulty]) throw new Error('La canción no contiene esta dificultad.')
     this.duration = song ? Math.max(...this.buffers.map(buffer => buffer.duration)) : DURATION
     this.beats = song?.beats ?? Array.from({ length: 44 }, (_, index) => index * .5)
-    this.phrases = song?.boostPhrases ?? []; this.mechanics = new Mechanics()
+    this.phrases = song?.boostByDifficulty?.[difficulty] ?? song?.boostPhrases ?? []; this.mechanics = new Mechanics()
     this.setVolume(volume)
     this.guitar!.gain.cancelScheduledValues(this.audio.currentTime)
     this.guitar!.gain.setValueAtTime(1, this.audio.currentTime)
@@ -150,7 +154,7 @@ export class Prototype {
   private gain(value: number) {
     if (this.audio && this.guitar) this.guitar.gain.setTargetAtTime(value, this.audio.currentTime, 0.015)
   }
-  private miss(time = this.position()) { this.streak = 0; this.mechanics.miss(time); this.gain(0); this.notify('Fallo · Guitarra silenciada', true) }
+  private miss(time = this.position()) { this.streak = 0; this.mechanics.miss(time); this.gain(0); this.notify(this.reactiveGuitar ? 'Fallo · Guitarra silenciada' : 'Fallo · Racha reiniciada', true) }
   private keydown = (event: KeyboardEvent) => {
     if (event.code === 'Escape' && this.active && !event.repeat) { event.preventDefault(); void this.togglePause(); return }
     if (this.paused) { const lane = this.settings.keys.indexOf(event.code); if (lane >= 0) { event.preventDefault(); this.held.add(lane) }; return }
@@ -184,7 +188,7 @@ export class Prototype {
     this.score += 50 * this.notes[index].lanes.length * this.multiplier()
     this.notes[index].lanes.forEach(laneIndex => { this.flashes[laneIndex] = performance.now() })
     this.gain(1)
-    this.notify(`Acierto · Racha ${this.streak} · Guitarra activa`, true)
+    this.notify(`Acierto · Racha ${this.streak}${this.reactiveGuitar ? ' · Guitarra activa' : ''}`, true)
   }
   private keyup = (event: KeyboardEvent) => {
     const lane = this.settings.keys.indexOf(event.code), time = this.position()
