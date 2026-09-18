@@ -14,14 +14,19 @@ export const songs = manifest.songs.map(entry => ({
   difficulties: entry.difficulties as Difficulty[], charts: {}, beats: [],
 }))
 export const importErrors = manifest.errors as { folder: string; message: string }[]
-export async function loadSong(id: string): Promise<Song> {
+let cachedSong: Song | undefined
+export async function loadSong(id: string, signal?: AbortSignal): Promise<Song> {
   const song = songs.find(song => song.id === id)
   if (!song) throw new Error('La canción no existe en el catálogo.')
-  const response = await fetch(`/songs/${id}/chart.json`)
+  signal?.throwIfAborted()
+  if (cachedSong?.id === id) return cachedSong
+  const response = await fetch(`/songs/${id}/chart.json`, { signal })
   if (!response.ok) throw new Error('No se pudo cargar el mapa de la canción.')
   const data = await response.json()
   if (data.schemaVersion !== 1 || !data.charts || !Array.isArray(data.beats)) throw new Error('Formato de mapa no compatible.')
   const playable = Object.fromEntries(song.difficulties.map(key => [key, (data.charts[key] as ChartNote[]).filter(note => !note.open)]))
-  return { ...song, charts: playable, beats: data.beats, boostPhrases: data.boostPhrases ?? [], boostByDifficulty: data.boostByDifficulty }
+  signal?.throwIfAborted()
+  cachedSong = { ...song, charts: playable, beats: data.beats, boostPhrases: data.boostPhrases ?? [], boostByDifficulty: data.boostByDifficulty }
+  return cachedSong
 }
 export const difficultyLabels = { easy: 'Fácil', medium: 'Medio', hard: 'Difícil', expert: 'Experto' }

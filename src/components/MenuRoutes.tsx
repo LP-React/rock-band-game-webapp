@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from '../App'
-import { loadSong } from '../songs/catalog'
+import { GameLoader } from './GameLoader'
+import { loadSong, songs } from '../songs/catalog'
 import type { Song } from '../songs/types'
 import { HomeScreen } from './HomeScreen'
 import { SongCatalog } from './SongCatalog'
@@ -11,27 +12,35 @@ import { GameScreen } from './GameScreen'
 
 export function HomeMenu() {
   const session = useSession(), router = useRouter()
+  useEffect(() => { router.prefetch('/catalog') }, [router])
   return <HomeScreen settings={session.settings} selected={session.selected} onSongChange={session.select} onVolumeChange={volume => session.setSettings({ ...session.settings, volume })} onPlay={songId => { if (session.selected !== songId) session.select(songId); router.push('/catalog') }} onConfig={session.configure} />
 }
 export function CatalogMenu() {
   const session = useSession(), router = useRouter()
+  useEffect(() => { router.prefetch('/'); router.prefetch('/play') }, [router])
+  useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => { void loadSong(session.selected, controller.signal).catch(() => { /* Play retains retry/error handling. */ }) }, 400)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [session.selected])
   return <SongCatalog selected={session.selected} difficulty={session.difficulty} volume={session.settings.volume} loading={false} error="" onSelect={session.select} onDifficulty={session.setDifficulty} onStart={() => { if (session.beginPlay()) router.push('/play') }} onBack={() => router.push('/')} onConfig={session.configure} />
 }
 export function PlayMenu() {
   const session = useSession(), router = useRouter()
   const { attempt } = session
-  const [song, setSong] = useState<Song | null>(null), [error, setError] = useState('')
+  const [song, setSong] = useState<Song | null>(null), [error, setError] = useState(''), [retry, setRetry] = useState(0)
   useEffect(() => {
     let cancelled = false
+    const controller = new AbortController()
     if (!attempt) { router.replace('/catalog'); return }
-    void loadSong(attempt.id).then(song => { if (!cancelled) setSong(song) }).catch(error => { if (!cancelled) setError(error instanceof Error ? error.message : 'No se pudo cargar el mapa.') })
-    return () => { cancelled = true }
-  }, [attempt, router])
+    void loadSong(attempt.id, controller.signal).then(song => { if (!cancelled) setSong(song) }).catch(error => { if (!cancelled) setError(error instanceof Error ? error.message : 'No se pudo cargar el mapa.') })
+    return () => { cancelled = true; controller.abort() }
+  }, [attempt, router, retry])
   function exit() { session.clearAttempt(); router.push('/catalog') }
   async function fullscreen() {
     try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen() }
     catch { setError('El navegador no permite pantalla completa.') }
   }
-  if (!song || !attempt) return <main className="menu-screen"><div className="home-content"><div><h1>{!attempt ? 'Elige una canción en el catálogo' : error ? 'No se pudo cargar la canción' : 'Cargando mapa…'}</h1>{error && <p role="alert">{error}</p>}<button onClick={exit}>Volver al catálogo</button></div></div></main>
+  if (!song || !attempt) return <GameLoader song={songs.find(entry => entry.id === attempt?.id)} difficulty={attempt?.difficulty} message="Cargando mapa…" error={error} onRetry={() => { setError(''); setRetry(value => value + 1) }} onBack={exit} />
   return <><GameScreen song={song} difficulty={attempt.difficulty} settings={session.settings} onConfig={session.configure} onExit={exit} onFullscreen={() => void fullscreen()} />{error && <div className="error" role="alert">{error}<button onClick={() => setError('')}>Cerrar</button></div>}</>
 }
