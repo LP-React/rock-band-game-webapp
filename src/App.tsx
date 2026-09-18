@@ -25,6 +25,7 @@ interface Session {
   clearAttempt: () => void
 }
 const SessionContext = createContext<Session | null>(null)
+const initialSong = songs.find(song => song.reactiveGuitar) ?? songs[0]
 export function useSession() {
   const session = useContext(SessionContext)
   if (!session) throw new Error('Game session provider is missing')
@@ -34,9 +35,9 @@ export default function App({ children }: { children: ReactNode }) {
   const [homeMuted, setHomeMuted] = useState(true)
   const [settings, setSettings] = useState<Settings>(() => ({ ...defaults, keys: [...defaults.keys] }))
   const [ready, setReady] = useState(false), [config, setConfig] = useState(false)
-  const [selected, setSelected] = useState(songs[0].id)
+  const [selected, setSelected] = useState(initialSong.id)
   const [menuVariant, setMenuVariant] = useState<'arcade' | 'encore'>('arcade')
-  const [difficulty, setDifficulty] = useState<Difficulty>(songs[0].difficulties[0])
+  const [difficulty, setDifficulty] = useState<Difficulty>(initialSong.difficulties[0])
   const [attempt, setAttempt] = useState<Session['attempt']>(null)
   useEffect(() => {
     let cancelled = false

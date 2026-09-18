@@ -11,7 +11,7 @@ import { GameScreen } from './GameScreen'
 
 export function HomeMenu() {
   const session = useSession(), router = useRouter()
-  return <HomeScreen settings={session.settings} onVolumeChange={volume => session.setSettings({ ...session.settings, volume })} onPlay={songId => { session.select(songId); router.push('/catalog') }} onConfig={session.configure} />
+  return <HomeScreen settings={session.settings} selected={session.selected} onSongChange={session.select} onVolumeChange={volume => session.setSettings({ ...session.settings, volume })} onPlay={songId => { if (session.selected !== songId) session.select(songId); router.push('/catalog') }} onConfig={session.configure} />
 }
 export function CatalogMenu() {
   const session = useSession(), router = useRouter()
