@@ -4,10 +4,11 @@ import { songs } from '../songs/catalog'
 import { menuLevels } from '../game/menu-audio'
 import { fallbackTheme } from '../songs/presentation'
 import { MenuFade, menuFadeTimes } from '../game/menu-fade'
+import { useSession } from '../App'
 
 export function HomeMusic({ volume, onVolumeChange, canvas, index, onSongChange }: { volume: number; onVolumeChange: (volume: number) => void; canvas: RefObject<HTMLCanvasElement | null>; index: number; onSongChange: (index: number) => void }) {
   const [playing, setPlaying] = useState(true), [error, setError] = useState('')
-  const [muted, setMuted] = useState(true)
+  const { homeMuted: muted, setHomeMuted: setMuted } = useSession()
   const [autoStart, setAutoStart] = useState(true)
   const audio = useRef<HTMLAudioElement>(null)
   const fade = useRef<MenuFade | null>(null)

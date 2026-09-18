@@ -9,6 +9,8 @@ import type { Difficulty } from './songs/types'
 import { SettingsPanel } from './components/SettingsPanel'
 
 interface Session {
+  homeMuted: boolean
+  setHomeMuted: (value: boolean) => void
   settings: Settings
   setSettings: (value: Settings) => void
   selected: string
@@ -29,6 +31,7 @@ export function useSession() {
   return session
 }
 export default function App({ children }: { children: ReactNode }) {
+  const [homeMuted, setHomeMuted] = useState(true)
   const [settings, setSettings] = useState<Settings>(() => ({ ...defaults, keys: [...defaults.keys] }))
   const [ready, setReady] = useState(false), [config, setConfig] = useState(false)
   const [selected, setSelected] = useState(songs[0].id)
@@ -51,7 +54,7 @@ export default function App({ children }: { children: ReactNode }) {
     if (!songs.find(song => song.id === selected)?.difficulties.includes(difficulty)) return false
     setAttempt({ id: selected, difficulty }); return true
   }
-  return <SessionContext.Provider value={{ settings, setSettings, selected, difficulty, select, setDifficulty, menuVariant, setMenuVariant, attempt, beginPlay, clearAttempt: () => setAttempt(null), configure: () => setConfig(true) }}>
+  return <SessionContext.Provider value={{ homeMuted, setHomeMuted, settings, setSettings, selected, difficulty, select, setDifficulty, menuVariant, setMenuVariant, attempt, beginPlay, clearAttempt: () => setAttempt(null), configure: () => setConfig(true) }}>
     {children}
     {config && <SettingsPanel settings={settings} onSave={setSettings} onClose={() => setConfig(false)} />}
   </SessionContext.Provider>
