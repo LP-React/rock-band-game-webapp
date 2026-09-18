@@ -2,9 +2,11 @@ import type { ChartNote } from './chart'
 import type { Mechanics, BoostPhrase } from './mechanics'
 import { keyLabel } from './settings'
 import type { Settings } from './settings'
-interface RenderState { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; time: number; active: boolean; held: Set<number>; judged: Set<number>; pressed: Map<number, Set<number>>; flashes: number[]; score: number; streak: number; multiplier: number; duration: number; notes: ChartNote[]; beats: number[]; mechanics: Mechanics; settings: Settings; phrases: BoostPhrase[] }
+import type { SongTheme } from '../songs/presentation'
+interface RenderState { theme?: SongTheme; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; time: number; active: boolean; held: Set<number>; judged: Set<number>; pressed: Map<number, Set<number>>; flashes: number[]; score: number; streak: number; multiplier: number; duration: number; notes: ChartNote[]; beats: number[]; mechanics: Mechanics; settings: Settings; phrases: BoostPhrase[] }
 export function drawHighway(state: RenderState) {
-    const colors = state.mechanics.boost ? Array(5).fill('#64e7ff') as string[] : ['#72eb48', '#ff4659', '#ffe14d', '#45b9ff', '#ff9d38']
+    const accent = state.theme?.accent ?? '#c5bedc', selection = state.theme?.selection ?? '#eee9f8', panel = state.theme?.panel ?? '#353046'
+    const colors = state.mechanics.boost ? Array(5).fill(accent) as string[] : ['#72eb48', '#ff4659', '#ffe14d', '#45b9ff', '#ff9d38']
     const travel = 3 / state.settings.speed
     const { canvas, ctx: c } = state
     const w = canvas.clientWidth, h = canvas.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1)
@@ -12,7 +14,7 @@ export function drawHighway(state: RenderState) {
     c.setTransform(dpr, 0, 0, dpr, 0, 0)
     c.clearRect(0, 0, w, h)
     const ambient = c.createRadialGradient(w * .5, h * .3, 10, w * .5, h * .5, w * .6)
-    ambient.addColorStop(0, state.mechanics.boost ? '#07506b' : '#242033'); ambient.addColorStop(1, '#07090d')
+    ambient.addColorStop(0, state.mechanics.boost ? accent + '70' : panel); ambient.addColorStop(1, '#07090dd9')
     c.fillStyle = ambient; c.fillRect(0, 0, w, h)
     const near = Math.min(w * .70, h * 1.12), top = h * .08, bottom = h * 1.04, hit = .94
     const point = (lane: number, depth: number) => {
@@ -23,11 +25,13 @@ export function drawHighway(state: RenderState) {
     path([point(0, 0), point(5, 0), point(5, 1), point(0, 1)])
     const board = c.createLinearGradient(0, top, 0, bottom); board.addColorStop(0, '#111218'); board.addColorStop(1, '#24252d')
     c.fillStyle = board; c.fill()
+    if (state.mechanics.boost) { c.shadowColor = accent; c.shadowBlur = 20 }
     for (let lane = 0; lane <= 5; lane++) {
       const a = point(lane, 0), b = point(lane, 1)
       c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y)
-      c.strokeStyle = state.mechanics.boost ? '#64e7ff' : lane === 0 || lane === 5 ? '#9298a7' : '#60616a'; c.lineWidth = lane === 0 || lane === 5 ? 3 : 1; c.stroke()
+      c.strokeStyle = state.mechanics.boost ? accent : lane === 0 || lane === 5 ? '#9298a7' : '#60616a'; c.lineWidth = lane === 0 || lane === 5 ? 3 : 1; c.stroke()
     }
+    c.shadowBlur = 0
     // Decorative grain follows the same projection as the lane geometry.
     for (let line = 0; line < 32; line++) {
       const lane = (line * 1.618) % 5, a = point(lane, 0), b = point(lane, 1)
@@ -64,7 +68,7 @@ export function drawHighway(state: RenderState) {
         for (let spark = 0; spark < 12; spark++) {
           const angle = spark * 2.4, distance = age * .2
           c.globalAlpha = 1 - age / 400
-          ellipse(p.x + Math.sin(angle) * distance, p.y - Math.abs(Math.cos(angle)) * distance - 15, 2, 4, state.mechanics.boost ? '#a8f6ff' : '#ffd36b')
+          ellipse(p.x + Math.sin(angle) * distance, p.y - Math.abs(Math.cos(angle)) * distance - 15, 2, 4, state.mechanics.boost ? selection : '#ffd36b')
         }
         c.globalAlpha = 1
       }
@@ -100,20 +104,22 @@ export function drawHighway(state: RenderState) {
     })
     // Fade the distant entrance, including rails and arriving notes, into the background.
     const entrance = c.createLinearGradient(0, top, 0, top + h * .20)
-    entrance.addColorStop(0, '#07090d'); entrance.addColorStop(1, '#07090d00')
+    entrance.addColorStop(0, '#101018'); entrance.addColorStop(1, '#07090d00')
     c.save(); path([point(0, 0), point(5, 0), point(5, 1), point(0, 1)]); c.clip()
     c.fillStyle = entrance; c.fillRect(0, top - 1, w, h * .20 + 1); c.restore()
     const compact = w < 700
     const boardLeft = point(0, hit).x, boardRight = point(5, hit).x
     const hudX = compact ? 12 : Math.max(18, boardLeft - 210), hudY = h * (compact ? .38 : .62)
+    c.fillStyle = panel + 'bb'; c.fillRect(hudX - 16, hudY - 24, compact ? 138 : 210, 180)
+    c.fillStyle = accent; c.fillRect(hudX - 16, hudY - 24, 3, 180)
     c.textAlign = 'left'; c.fillStyle = '#a4a3b1'; c.font = '11px Segoe UI'
     c.fillText('PUNTUACIÓN', hudX, hudY)
-    c.fillStyle = '#f0eff5'; c.font = `bold ${compact ? 24 : 44}px Segoe UI`; c.fillText(String(state.score).padStart(6, '0'), hudX, hudY + 45)
-    c.fillStyle = '#baff64'; c.font = `bold ${compact ? 14 : 20}px Segoe UI`; c.fillText(`×${state.multiplier}  ·  ${state.streak} RACHA`, hudX, hudY + 76)
+    c.fillStyle = '#f0eff5'; c.font = `900 ${compact ? 26 : 42}px Segoe UI`; c.fillText(String(state.score).padStart(6, '0'), hudX, hudY + 45)
+    c.fillStyle = accent; c.font = `bold ${compact ? 14 : 20}px Segoe UI`; c.fillText(`×${state.multiplier}  ·  ${state.streak} RACHA`, hudX, hudY + 76)
     const barWidth = compact ? 90 : 168
-    c.fillStyle = '#64e7ff'; c.font = '11px Segoe UI'; c.fillText(state.mechanics.boost ? 'BOOST ACTIVO' : 'BOOST · ESPACIO', hudX, hudY + 112)
+    c.fillStyle = accent; c.font = '11px Segoe UI'; c.fillText(state.mechanics.boost ? 'BOOST ACTIVO' : 'BOOST · ESPACIO', hudX, hudY + 112)
     c.fillStyle = '#303440'; c.fillRect(hudX, hudY + 124, barWidth, 12)
-    c.fillStyle = '#64e7ff'; c.fillRect(hudX, hudY + 124, barWidth * state.mechanics.energy, 12)
+    c.fillStyle = accent; c.fillRect(hudX, hudY + 124, barWidth * state.mechanics.energy, 12)
     c.fillStyle = '#fff'; c.fillRect(hudX + barWidth / 2, hudY + 122, 1, 16)
     const lifeX = compact ? w - 30 : Math.min(w - 45, boardRight + 30), lifeY = h * .55, lifeHeight = Math.min(180, h * .30)
     c.textAlign = 'center'; c.fillStyle = '#a4a3b1'; c.font = '11px Segoe UI'; c.fillText('VIDA', lifeX + 8, lifeY - 16)
@@ -123,8 +129,8 @@ export function drawHighway(state: RenderState) {
       c.fillRect(lifeX, segmentY, 16, lifeHeight / 20 - 2)
     }
     if (state.active && !state.mechanics.boost && state.mechanics.energy >= .5) {
-      c.textAlign = 'center'; c.font = 'bold 13px Segoe UI'; c.fillStyle = '#a8f6ff'; c.fillText('⚡ BOOST LISTO · ESPACIO', w / 2, h * .25)
+      c.textAlign = 'center'; c.font = 'bold 13px Segoe UI'; c.fillStyle = selection; c.fillText('⚡ BOOST LISTO · ESPACIO', w / 2, h * .25)
     }
-    if (state.mechanics.boost) { c.textAlign = 'center'; c.font = 'bold 24px Segoe UI'; c.fillStyle = '#a8f6ff'; c.fillText(`⚡ BOOST ×${state.multiplier}`, w / 2, h * .1) }
-    c.fillStyle = '#baff64'; c.fillRect(0, h - 3, w * time / state.duration, 3)
+    if (state.mechanics.boost) { c.textAlign = 'center'; c.font = 'bold 24px Segoe UI'; c.fillStyle = selection; c.fillText(`⚡ BOOST ×${state.multiplier}`, w / 2, h * .1) }
+    c.fillStyle = accent; c.fillRect(0, h - 3, w * time / state.duration, 3)
 }

@@ -41,6 +41,8 @@ First-phase target: per-song difficulties, synchronized audio, chords, sustains,
 
 ## Current state
 
+- Play uses the selected song palette/background, the menu-style header with a left catalog action and fullscreen icon, and a compact artwork/track/difficulty/pause strip. Footer restart/pause/volume controls are removed; volume and scroll speed remain in shared Settings, which pauses gameplay when opened. The themed pause card supports arrows, Enter, Escape, and contained Tab focus; the header/track strip are inert while paused. Canvas HUD groups score/streak/boost beside the highway. Displayed score eases toward the actual score without changing scoring or timing, freezes while paused, resets on restart, and respects reduced motion. Boost notes, rails/glow, sparks, energy/progress, and ambient color use the song palette; ordinary five lane colors and life threshold colors remain fixed.
+
 - The catalog loads eight supplied folders: Dragonforce, Cole Rolland, three Linkin Park songs, two Imperial Circus Dead Decadence songs, and Linked Horizon. Add extracted folders under `src/musics` and run `pnpm import:songs`; no song-specific code edits are required for supported packages.
 - Desktop home buttons overlap behind the foreground disc in both menu steps; labels and Back stay outside its edge. Mobile keeps a stacked layout. The audio ring uses stronger nonlinear peaks and transient emphasis with faster FFT smoothing; pause/reduced-motion return to a static ring.
 - Home shares the catalog's song presentation palette and background, driven by the current player selection. Switching tracks updates the disc, spectrum, menu buttons, and interface accents without recreating the audio graph. The five gameplay key colors remain fixed.

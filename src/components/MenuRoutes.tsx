@@ -33,5 +33,5 @@ export function PlayMenu() {
     catch { setError('El navegador no permite pantalla completa.') }
   }
   if (!song || !attempt) return <main className="menu-screen"><div className="home-content"><div><h1>{!attempt ? 'Elige una canción en el catálogo' : error ? 'No se pudo cargar la canción' : 'Cargando mapa…'}</h1>{error && <p role="alert">{error}</p>}<button onClick={exit}>Volver al catálogo</button></div></div></main>
-  return <><GameScreen song={song} difficulty={attempt.difficulty} settings={session.settings} onSettings={session.setSettings} onExit={exit} onFullscreen={() => void fullscreen()} />{error && <div className="error" role="alert">{error}<button onClick={() => setError('')}>Cerrar</button></div>}</>
+  return <><GameScreen song={song} difficulty={attempt.difficulty} settings={session.settings} onConfig={session.configure} onExit={exit} onFullscreen={() => void fullscreen()} />{error && <div className="error" role="alert">{error}<button onClick={() => setError('')}>Cerrar</button></div>}</>
 }

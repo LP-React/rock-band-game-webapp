@@ -6,6 +6,7 @@ import { loadSongAudio } from '../songs/audio-loader'
 import type { Song, Difficulty } from '../songs/types'
 import { Mechanics } from './mechanics'
 import { defaults, keyLabel, validKeys } from './settings'
+import type { SongTheme } from '../songs/presentation'
 import type { Settings } from './settings'
 
 export class Prototype {
@@ -34,6 +35,9 @@ export class Prototype {
   private offset = 0
   private destroyed = false
   private generation = 0
+  private theme?: SongTheme
+  private displayedScore = 0
+  private lastRender = 0
   private score = 0
   private streak = 0
   private frame = 0
@@ -94,7 +98,7 @@ export class Prototype {
     this.notes = notes; this.beats = song.beats; this.duration = song.duration
     this.phrases = song.boostByDifficulty?.[difficulty] ?? song.boostPhrases ?? []; this.mechanics = new Mechanics()
     this.judged.clear(); this.pressed.clear(); this.flashes.fill(0)
-    this.score = 0; this.streak = 0
+    this.score = 0; this.displayedScore = 0; this.streak = 0
     this.notify('Listo para tocar', false)
   }
   async start(volume: number, song?: Song, difficulty: Difficulty = 'easy') {
@@ -109,6 +113,7 @@ export class Prototype {
       this.guitar = this.audio.createGain()
       this.guitar.connect(this.master)
     }
+    this.theme = song?.theme
     const id = song?.id ?? 'demo'
     if (id !== this.songId) { this.buffers = undefined; this.songId = id }
     if (!this.buffers) {
@@ -130,7 +135,7 @@ export class Prototype {
     this.offset = 0; this.paused = false
     this.playSources(0)
     this.judged.clear(); this.pressed.clear(); this.held.clear(); this.flashes.fill(0)
-    this.score = 0; this.streak = 0; this.active = true
+    this.score = 0; this.displayedScore = 0; this.streak = 0; this.active = true
     this.canvas.focus({ preventScroll: true })
     this.notify(`Prepárate · Pulsa ${this.settings.keys.map(keyLabel).join('/')} al llegar a la línea`, true)
   }
@@ -156,6 +161,7 @@ export class Prototype {
   }
   private miss(time = this.position()) { this.streak = 0; this.mechanics.miss(time); this.gain(0); this.notify(this.reactiveGuitar ? 'Fallo · Guitarra silenciada' : 'Fallo · Racha reiniciada', true) }
   private keydown = (event: KeyboardEvent) => {
+    if (document.querySelector?.('dialog[open]')) return
     if (event.code === 'Escape' && this.active && !event.repeat) { event.preventDefault(); void this.togglePause(); return }
     if (this.paused) { const lane = this.settings.keys.indexOf(event.code); if (lane >= 0) { event.preventDefault(); this.held.add(lane) }; return }
     if (event.target instanceof HTMLElement && /^(INPUT|BUTTON|SELECT|TEXTAREA|A)$/.test(event.target.tagName)) return
@@ -210,7 +216,12 @@ export class Prototype {
     const time = this.position()
     if (this.active && !this.paused) this.expire(time)
     if (this.active && !this.paused) this.score += this.mechanics.update(time, this.notes, this.phrases, Math.min(4, 1 + Math.floor(this.streak / 10)))
-    drawHighway({ canvas: this.canvas, ctx: this.ctx, time, active: this.active, held: this.held, judged: this.judged, pressed: this.pressed, flashes: this.flashes, score: this.score, streak: this.streak, multiplier: this.multiplier(), duration: this.duration, notes: this.notes, beats: this.beats, mechanics: this.mechanics, settings: this.settings, phrases: this.phrases })
+    const now = performance.now(), elapsed = Math.min(100, now - this.lastRender)
+    this.lastRender = now
+    const reduced = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!this.paused) this.displayedScore += (this.score - this.displayedScore) * (reduced ? 1 : 1 - Math.exp(-elapsed / 85))
+    if (Math.abs(this.score - this.displayedScore) < 1) this.displayedScore = this.score
+    drawHighway({ theme: this.theme, canvas: this.canvas, ctx: this.ctx, time, active: this.active, held: this.held, judged: this.judged, pressed: this.pressed, flashes: this.flashes, score: Math.round(this.displayedScore), streak: this.streak, multiplier: this.multiplier(), duration: this.duration, notes: this.notes, beats: this.beats, mechanics: this.mechanics, settings: this.settings, phrases: this.phrases })
     if (this.active && this.mechanics.health <= 0) { this.stop(false); this.notify(`Fin de partida · ${this.score} puntos`, false) }
     if (this.active && time >= this.duration) { this.stop(false); this.notify(`Canción terminada · ${this.score} puntos`, false) }
     this.frame = requestAnimationFrame(this.render)

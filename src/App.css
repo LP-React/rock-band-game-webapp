@@ -42,3 +42,39 @@ dialog { color: #e9eef8; background: #151a25; border: 1px solid #485063; border-
 .settings-panel .settings-save, .settings-panel .settings-save:hover { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 700; }
 .settings-panel .settings-save:hover { filter: brightness(1.05); }
 @media(max-width: 540px) { .settings-panel { padding: 18px; } .settings-section { padding: 14px; } .settings-heading > span { display: none; } .settings-panel .bindings { gap: 5px; } .settings-panel .bindings label { font-size: 10px; } .settings-panel .bindings button small { font-size: 7px; letter-spacing: 0; } .settings-panel .setting-row { grid-template-columns: minmax(0, 1fr) 64px; gap: 12px; } .settings-panel .setting-row > span { grid-column: 1 / -1; } .settings-panel .setting-row input { grid-column: 1; } .settings-panel .dialog-actions { gap: 10px; } }
+
+.game-shell { position: relative; isolation: isolate; background: #100d17; }
+.game-backdrop { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; filter: blur(12px) brightness(.32); transform: scale(1.04); }
+.game-shell > .stage-lines { z-index: -1; opacity: .22; }
+.game-shell .brand span { color: var(--accent); }
+.game-header { flex-shrink: 0; position: relative; z-index: 3; }
+.game-header .fullscreen-icon { padding: 9px; display: grid; place-items: center; }
+.game-track-strip { display: flex; align-items: center; gap: 14px; padding: 10px max(24px, 3.5vw); background: #100d1766; border-bottom: 1px solid #ffffff0b; color: #fff8f0; }
+.game-track-strip > img { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; }
+.game-track-strip > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.game-track-strip strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-track-strip span { font-size: 12px; color: var(--accent); }
+.game-track-strip .game-difficulty { margin-left: auto; white-space: nowrap; color: #fff8f09a; }
+.game-track-strip button { border-radius: 30px; background: #ffffff06; border-color: #ffffff20; white-space: nowrap; }
+.game-track-strip kbd { font-size: 10px; margin-left: 6px; }
+.game-shell .stage-status { top: 14px; left: max(24px, 3.5vw); font-size: 11px; color: #fff8f09a; }
+.game-shell .start-overlay { background: #0c0915a8; backdrop-filter: blur(10px); overflow: auto; }
+.game-shell button.game-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 800; }
+.game-shell button.game-primary:hover { background: var(--accent); filter: brightness(1.08); }
+.pause-card { width: min(460px, 100%); text-align: left; padding: 28px; border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 18px; background: linear-gradient(140deg, color-mix(in srgb, var(--panel) 88%, transparent), #100d17ed); box-shadow: 0 30px 100px #0008; animation: pause-arrive .25s ease-out; }
+.game-eyebrow { font-size: 10px; letter-spacing: .18em; color: var(--accent); }
+.pause-track { display: flex; align-items: center; gap: 18px; margin-top: 20px; }
+.pause-track img { width: 76px; height: 76px; border-radius: 10px; }
+.pause-track h1 { margin: 0 0 6px; font-size: 32px; }
+.pause-track strong { display: block; font-size: 13px; line-height: 1.5; }
+.pause-track p { margin: 3px 0 0; color: var(--accent); }
+.pause-caption { margin: 20px 0; }
+.pause-actions { display: grid; gap: 9px; }
+.pause-actions button { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; padding: 15px 20px; font-size: 14px; border-radius: 3px; clip-path: polygon(0 0, 97% 0, 100% 100%, 0 100%); background: #ffffff08; border-color: #ffffff18; transition: background .15s, transform .15s; }
+.pause-actions button:hover, .pause-actions button:focus-visible { background: color-mix(in srgb, var(--accent) 18%, var(--panel)); transform: translateX(3px); outline: 2px solid var(--accent); }
+.pause-actions kbd { font-size: 10px; opacity: .7; }
+.pause-card small { display: block; line-height: 1.6; }
+@keyframes pause-arrive { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
+@media(max-width:700px) { .game-header { padding: 10px 14px; gap: 10px; } .game-header .brand { font-size: 17px; } .game-header button { font-size: 11px; padding: 8px 10px; } .game-track-strip { padding: 8px 14px; gap: 10px; } .game-track-strip strong { font-size: 12px; } .game-track-strip .game-difficulty { font-size: 10px; } .game-track-strip > img { display: none; } .game-track-strip button kbd { display: none; } .pause-card { padding: 20px; } }
+@media(max-height:620px) { .game-shell .pause-overlay { justify-content: flex-start; } .pause-card { margin-block: auto; padding: 18px; } .pause-track { margin-top: 10px; } .pause-track img { width: 52px; height: 52px; } .pause-caption { margin: 12px 0; } .pause-actions button { padding: 10px 16px; } .pause-card small { margin-top: 12px; } }
+@media(prefers-reduced-motion:reduce) { .pause-card { animation: none; } .pause-actions button { transition: none; } }
