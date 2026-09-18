@@ -4,7 +4,7 @@ import type { Mechanics, BoostPhrase } from './mechanics'
 import { keyLabel } from './settings'
 import type { Settings } from './settings'
 import type { SongTheme } from '../songs/presentation'
-interface RenderState { theme?: SongTheme; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; time: number; active: boolean; held: Set<number>; judged: Set<number>; pressed: Map<number, Set<number>>; flashes: number[]; score: number; streak: number; multiplier: number; duration: number; notes: ChartNote[]; beats: number[]; mechanics: Mechanics; settings: Settings; phrases: BoostPhrase[] }
+interface RenderState { preparing?: number; theme?: SongTheme; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; time: number; active: boolean; held: Set<number>; judged: Set<number>; pressed: Map<number, Set<number>>; flashes: number[]; score: number; streak: number; multiplier: number; duration: number; notes: ChartNote[]; beats: number[]; mechanics: Mechanics; settings: Settings; phrases: BoostPhrase[] }
 const backgrounds = new WeakMap<CanvasRenderingContext2D, { key: string; ambient: CanvasGradient; board: CanvasGradient; entrance: CanvasGradient }>()
 const stars = new WeakMap<ChartNote[], { phrases: BoostPhrase[]; marked: boolean[] }>()
 export function drawHighway(state: RenderState) {
@@ -51,7 +51,14 @@ export function drawHighway(state: RenderState) {
     const time = state.time
     const previewTime = state.active ? time : 1.1
     const firstBeat = lowerBound(state.beats, previewTime - (1 - hit) * travel, beatTime), lastBeat = upperBound(state.beats, previewTime + hit * travel, beatTime)
-    for (let beat = firstBeat; beat < lastBeat; beat++) {
+    if (state.preparing !== undefined) {
+      for (let line = 0; line < 8; line++) {
+        const depth = (line / 8 + state.preparing * .3) % 1
+        const a = point(0, depth), b = point(5, depth)
+        c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.strokeStyle = '#b0b5c53a'; c.lineWidth = 1; c.stroke()
+      }
+    }
+    for (let beat = firstBeat; state.preparing === undefined && beat < lastBeat; beat++) {
       const depth = hit - (state.beats[beat] - previewTime) / travel
       if (depth < 0 || depth > 1) continue
       const a = point(0, depth), b = point(5, depth)
@@ -88,7 +95,7 @@ export function drawHighway(state: RenderState) {
     const a = point(0, hit), b = point(5, hit)
     c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.strokeStyle = '#ffffff88'; c.lineWidth = 2; c.stroke()
     const firstNote = lowerBound(state.notes, previewTime - (1 - hit) * travel, noteTime), lastNote = upperBound(state.notes, previewTime + hit * travel, noteTime)
-    for (let i = lastNote - 1; i >= firstNote; i--) {
+    for (let i = lastNote - 1; state.preparing === undefined && i >= firstNote; i--) {
       const depth = hit - (state.notes[i].time - previewTime) / travel
       if (depth >= 0 && depth <= 1 && (!state.active || !state.judged.has(i))) state.notes[i].lanes.forEach((lane, laneIndex) => {
         if (state.active && state.pressed.get(i)?.has(lane)) return
@@ -121,6 +128,10 @@ export function drawHighway(state: RenderState) {
     const compact = w < 700
     const boardLeft = point(0, hit).x, boardRight = point(5, hit).x
     const hudX = compact ? 12 : Math.max(18, boardLeft - 210), hudY = h * (compact ? .38 : .62)
+    c.save()
+    const scoreEntrance = state.preparing === undefined ? 1 : Math.min(1, state.preparing / .7)
+    c.globalAlpha = scoreEntrance
+    c.translate(-24 * (1 - scoreEntrance), 0)
     c.fillStyle = panel + 'bb'; c.fillRect(hudX - 16, hudY - 24, compact ? 138 : 210, 180)
     c.fillStyle = accent; c.fillRect(hudX - 16, hudY - 24, 3, 180)
     c.textAlign = 'left'; c.fillStyle = '#a4a3b1'; c.font = '11px Segoe UI'
@@ -132,6 +143,11 @@ export function drawHighway(state: RenderState) {
     c.fillStyle = '#303440'; c.fillRect(hudX, hudY + 124, barWidth, 12)
     c.fillStyle = accent; c.fillRect(hudX, hudY + 124, barWidth * state.mechanics.energy, 12)
     c.fillStyle = '#fff'; c.fillRect(hudX + barWidth / 2, hudY + 122, 1, 16)
+    c.restore()
+    c.save()
+    const lifeEntrance = state.preparing === undefined ? 1 : Math.max(0, Math.min(1, (state.preparing - .2) / .7))
+    c.globalAlpha = lifeEntrance
+    c.translate(20 * (1 - lifeEntrance), 0)
     const lifeX = compact ? w - 30 : Math.min(w - 45, boardRight + 30), lifeY = h * .55, lifeHeight = Math.min(180, h * .30)
     c.textAlign = 'center'; c.fillStyle = '#a4a3b1'; c.font = '11px Segoe UI'; c.fillText('VIDA', lifeX + 8, lifeY - 16)
     for (let segment = 0; segment < 20; segment++) {
@@ -139,6 +155,7 @@ export function drawHighway(state: RenderState) {
       c.fillStyle = segment / 20 < state.mechanics.health ? segment < 5 ? '#ff4659' : segment < 10 ? '#ffe14d' : '#72eb48' : '#303440'
       c.fillRect(lifeX, segmentY, 16, lifeHeight / 20 - 2)
     }
+    c.restore()
     if (state.active && !state.mechanics.boost && state.mechanics.energy >= .5) {
       c.textAlign = 'center'; c.font = 'bold 13px Segoe UI'; c.fillStyle = selection; c.fillText('⚡ BOOST LISTO · ESPACIO', w / 2, h * .25)
     }

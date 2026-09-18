@@ -83,14 +83,23 @@ dialog { color: #e9eef8; background: #151a25; border: 1px solid #485063; border-
 .stage > .game-loader { position: fixed; inset: 0; height: 100dvh; z-index: 10; }
 .loader-backdrop { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; filter: blur(22px) brightness(.35); }
 .game-loader::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse at center, color-mix(in srgb, var(--panel) 30%, transparent), #080610b8); }
-.loader-track { display: flex; align-items: center; gap: 28px; padding: 24px 28px; text-align: left; border-radius: 24px; background: color-mix(in srgb, var(--panel) 60%, #100d1780); border: 1px solid #ffffff12; }
+.loader-track { display: flex; align-items: center; gap: 28px; padding: 24px 28px; text-align: left; border-radius: 0; background: transparent; border: 0; }
 .loader-track > div { min-width: 0; }
 .loader-track .loader-artwork { flex-shrink: 0; }
 .loader-details { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .stage-countdown { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 12vh; pointer-events: none; }
 .stage-countdown > span { font-size: 12px; letter-spacing: .3em; color: var(--secondary); }
-.stage-countdown strong { font-size: clamp(90px, 12vw, 160px); line-height: 1.2; color: var(--secondary); text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 55%, transparent); animation: loader-pulse 1s ease-out; }
+.stage-countdown strong { font-size: clamp(58px, 7vw, 88px); line-height: 1.2; color: var(--secondary); text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 55%, transparent); animation: countdown-step 1s ease-out; }
 @media(max-width:540px) { .loader-track { gap: 16px; padding: 18px; } .loader-track .loader-artwork { width: 84px; height: 84px; } .loader-details { gap: 8px; } .loader-content h1 { font-size: 22px; } }
+.game-loader { animation: loader-arrive .45s ease-out; transition: opacity .4s ease, visibility .4s; }
+.game-loader[data-leaving=true] { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-content { animation: loader-content-arrive .6s ease-out; }
+.stage-preparing canvas { animation: highway-arrive .8s ease-out both; }
+@keyframes loader-arrive { from { opacity: 0; } to { opacity: 1; } }
+@keyframes loader-content-arrive { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes highway-arrive { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+@keyframes countdown-step { 0% { opacity: 0; transform: translateY(-12px) scale(1.1); } 20%, 65% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(10px) scale(.95); } }
+@media(prefers-reduced-motion:reduce) { .game-loader, .loader-content, .stage-preparing canvas, .stage-countdown strong { animation: none; } .game-loader { transition: none; } }
 .loader-content { width: min(780px, 100%); text-align: center; margin: auto; }
 .loader-brand { display: inline-block; font-size: 18px; font-weight: 900; font-style: italic; margin-bottom: 26px; }
 .loader-brand em { color: var(--accent); font-weight: 400; }
